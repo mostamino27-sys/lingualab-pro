@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="LinguaLab Pro - Plateforme avancée de recherche et d'analyse linguistique">
+    <meta name="author" content="Bettahar Abdelkrim">
+    <title>LinguaLab Pro - Laboratoire de Recherche Linguistique</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body class="dark-mode">
+    
+    <div class="top-bar">
+        <div class="logo">
+            <i class="fas fa-microscope"></i>
+            <span>LinguaLab Pro</span>
+        </div>
+        <div class="controls">
+            <button class="theme-toggle" onclick="toggleTheme()" title="Basculer le thème">
+                <i class="fas fa-sun"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="particles-container"></div>
+
+    <div class="container">
+        <header>
+            <h1>LINGUALAB PRO</h1>
+            <p>Laboratoire Avancé de Recherche et d'Analyse Linguistique</p>
+        </header>
+
+        <div class="layout">
+            <nav class="sidebar">
+                <div class="nav-item active" onclick="switchTool('corpus')" data-tool="corpus">
+                    <span class="nav-icon"><i class="fas fa-database"></i></span>
+                    <span>Analyse de Corpus</span>
+                </div>
+                <div class="nav-item" onclick="switchTool('semantic')" data-tool="semantic">
+                    <span class="nav-icon"><i class="fas fa-brain"></i></span>
+                    <span>Analyse Sémantique</span>
+                </div>
+                <div class="nav-item" onclick="switchTool('concordance')" data-tool="concordance">
+                    <span class="nav-icon"><i class="fas fa-search"></i></span>
+                    <span>Concordancier KWIC</span>
+                </div>
+                <div class="nav-item" onclick="switchTool('comparison')" data-tool="comparison">
+                    <span class="nav-icon"><i class="fas fa-balance-scale"></i></span>
+                    <span>Comparaison</span>
+                </div>
+                <div class="nav-item" onclick="switchTool('visualization')" data-tool="visualization">
+                    <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                    <span>Visualisation</span>
+                </div>
+                <div class="nav-item" onclick="switchTool('about')" data-tool="about">
+                    <span class="nav-icon"><i class="fas fa-info-circle"></i></span>
+                    <span>À propos</span>
+                </div>
+            </nav>
+
+            <main class="main-content">
+                <div id="corpus-tool" class="tool-card active">
+                    <h2><i class="fas fa-database"></i> Analyseur de Corpus Textuel</h2>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Texte à analyser</label>
+                        <textarea id="corpus-input" placeholder="Collez votre texte ici pour une analyse statistique complète..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-language"></i> Langue du texte</label>
+                        <select id="corpus-lang">
+                            <option value="fr">🇫🇷 Français</option>
+                            <option value="en">🇬🇧 Anglais</option>
+                            <option value="ar">🇩🇿 Arabe</option>
+                            <option value="es">🇪🇸 Espagnol</option>
+                            <option value="it">🇮🇹 Italien</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="neon-btn primary" onclick="analyzeCorpus()">
+                            <i class="fas fa-play"></i> Analyser le Corpus
+                        </button>
+                        <button class="neon-btn success" onclick="exportToPDF('corpus')">
+                            <i class="fas fa-file-pdf"></i> Exporter en PDF
+                        </button>
+                    </div>
+
+                    <div id="corpus-results" class="results-panel"></div>
+                </div>
+
+                <div id="semantic-tool" class="tool-card">
+                    <h2><i class="fas fa-brain"></i> Analyse Sémantique Avancée</h2>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Texte à analyser</label>
+                        <textarea id="semantic-input" placeholder="Entrez le texte pour une analyse sémantique approfondie..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-cog"></i> Type d'analyse</label>
+                        <select id="semantic-type">
+                            <option value="sentiment">💭 Analyse de sentiment</option>
+                            <option value="entities">👤 Entités nommées</option>
+                            <option value="themes">🎯 Thèmes principaux</option>
+                            <option value="collocations">🔗 Collocations</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="neon-btn primary" onclick="analyzeSemantic()">
+                            <i class="fas fa-play"></i> Analyser
+                        </button>
+                        <button class="neon-btn success" onclick="exportToPDF('semantic')">
+                            <i class="fas fa-file-pdf"></i> Exporter en PDF
+                        </button>
+                    </div>
+
+                    <div id="semantic-results" class="results-panel"></div>
+                </div>
+
+                <div id="concordance-tool" class="tool-card">
+                    <h2><i class="fas fa-search"></i> Concordancier KWIC</h2>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Corpus</label>
+                        <textarea id="conc-input" placeholder="Entrez votre corpus textuel..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Mot-clé</label>
+                        <input type="text" id="conc-keyword" placeholder="Mot à rechercher...">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-expand"></i> Taille du contexte (mots)</label>
+                        <input type="number" id="conc-window" value="6" min="3" max="20">
+                    </div>
+
+                    <div class="button-group">
+                        <button class="neon-btn primary" onclick="generateConcordance()">
+                            <i class="fas fa-play"></i> Générer les Concordances
+                        </button>
+                        <button class="neon-btn success" onclick="exportToPDF('concordance')">
+                            <i class="fas fa-file-pdf"></i> Exporter en PDF
+                        </button>
+                    </div>
+
+                    <div id="conc-results" class="results-panel"></div>
+                </div>
+
+                <div id="comparison-tool" class="tool-card">
+                    <h2><i class="fas fa-balance-scale"></i> Comparaison de Textes Avancée</h2>
+                    
+                    <div class="comparison-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-file-alt"></i> Premier texte</label>
+                            <textarea id="compare-text1" placeholder="Collez le premier texte ici..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-file-alt"></i> Deuxième texte</label>
+                            <textarea id="compare-text2" placeholder="Collez le deuxième texte ici..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="neon-btn primary" onclick="compareTexts()">
+                            <i class="fas fa-play"></i> Comparer les Textes
+                        </button>
+                        <button class="neon-btn success" onclick="exportToPDF('comparison')">
+                            <i class="fas fa-file-pdf"></i> Exporter le rapport PDF
+                        </button>
+                    </div>
+
+                    <div id="comparison-results" class="results-panel"></div>
+                    <div id="comparison-charts" class="charts-container"></div>
+                </div>
+
+                <div id="visualization-tool" class="tool-card">
+                    <h2><i class="fas fa-chart-line"></i> Visualisation de Données</h2>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-file-alt"></i> Données à visualiser</label>
+                        <textarea id="viz-input" placeholder="Entrez le texte pour créer des visualisations..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-chart-bar"></i> Type de visualisation</label>
+                        <select id="viz-type">
+                            <option value="wordcloud">☁️ Nuage de mots</option>
+                            <option value="frequency">📊 Fréquences</option>
+                            <option value="ngrams">🔤 N-grammes</option>
+                            <option value="lexical">📈 Diversité lexicale</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button class="neon-btn primary" onclick="visualizeData()">
+                            <i class="fas fa-play"></i> Créer la Visualisation
+                        </button>
+                        <button class="neon-btn success" onclick="exportToPDF('visualization')">
+                            <i class="fas fa-file-pdf"></i> Exporter en PDF
+                        </button>
+                    </div>
+
+                    <div id="viz-results" class="results-panel"></div>
+                </div>
+
+                <div id="about-tool" class="tool-card">
+                    <h2><i class="fas fa-info-circle"></i> À propos de LinguaLab Pro</h2>
+                    
+                    <div class="about-content">
+                        <p class="intro">
+                            <strong>LinguaLab Pro</strong> est un laboratoire de recherche linguistique avancé, 
+                            spécialement conçu pour les chercheurs académiques, les étudiants en Master et les doctorants en sciences du langage. 
+                            La plateforme intègre des algorithmes d'analyse avancés pour une étude complète des corpus textuels.
+                        </p>
+
+                        <div class="features-grid">
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-microscope"></i></div>
+                                <h3>Analyse Quantitative</h3>
+                                <p>Statistiques lexicales complètes, TTR, hapax, distribution de Zipf, complexité syntaxique</p>
+                            </div>
+
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-brain"></i></div>
+                                <h3>Analyse Sémantique</h3>
+                                <p>Extraction d'entités, analyse de sentiment, modélisation thématique, relations lexicales</p>
+                            </div>
+
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-search-plus"></i></div>
+                                <h3>Concordances KWIC</h3>
+                                <p>Analyse contextuelle, patterns d'usage, collocations, approche distributionnelle</p>
+                            </div>
+
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-balance-scale"></i></div>
+                                <h3>Comparaison de Textes</h3>
+                                <p>Comparaison complète, analyse des différences, similarité lexicale, rapports PDF</p>
+                            </div>
+
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                                <h3>Visualisations</h3>
+                                <p>Graphiques interactifs, nuages de mots, courbes de croissance, matrices de fréquence</p>
+                            </div>
+
+                            <div class="feature-box">
+                                <div class="feature-icon"><i class="fas fa-file-pdf"></i></div>
+                                <h3>Export PDF</h3>
+                                <p>Génération de rapports académiques professionnels au format PDF</p>
+                            </div>
+                        </div>
+
+                        <div class="academic-applications">
+                            <h3><i class="fas fa-graduation-cap"></i> Applications Académiques</h3>
+                            <ul>
+                                <li><i class="fas fa-check"></i> Sociolinguistique et variation</li>
+                                <li><i class="fas fa-check"></i> Analyse du discours</li>
+                                <li><i class="fas fa-check"></i> Linguistique de corpus</li>
+                                <li><i class="fas fa-check"></i> Lexicométrie et statistique textuelle</li>
+                                <li><i class="fas fa-check"></i> Traitement automatique du langage naturel</li>
+                                <li><i class="fas fa-check"></i> Dialectologie et géolinguistique</li>
+                            </ul>
+                        </div>
+
+                        <div class="tech-stack">
+                            <h3><i class="fas fa-code"></i> Technologies Utilisées</h3>
+                            <div class="tech-badges">
+                                <span class="badge">HTML5</span>
+                                <span class="badge">CSS3</span>
+                                <span class="badge">JavaScript</span>
+                                <span class="badge">Chart.js</span>
+                                <span class="badge">jsPDF</span>
+                            </div>
+                        </div>
+
+                        <div class="developer-info">
+                            <h3><i class="fas fa-user-tie"></i> Développeur</h3>
+                            <div class="developer-card">
+                                <div class="developer-details">
+                                    <h4>Bettahar Abdelkrim</h4>
+                                    <p><i class="fas fa-graduation-cap"></i> Master en Sciences du Langage Français</p>
+                                    <p><i class="fas fa-university"></i> Université de Mostaganem</p>
+                                    <p><i class="fas fa-envelope"></i> mostamino27@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <p>Analyse en cours...</p>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 LinguaLab Pro - Développé par <strong>Bettahar Abdelkrim</strong></p>
+        <p>Université de Mostaganem</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
