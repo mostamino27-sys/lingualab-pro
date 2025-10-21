@@ -6,7 +6,7 @@ let darkMode = true;
 document.addEventListener('DOMContentLoaded', function() {
     initParticles();
     initTheme();
-    console.log('✅ LinguaLab Pro loaded successfully!');
+    console.log('✅ LinguaLab Pro v2.0 loaded successfully!');
 });
 
 // ========== Thème ==========
@@ -84,37 +84,126 @@ function showLoading(show) {
     }
 }
 
-// ========== Upload File ==========
-function loadFile(input) {
-    const file = input.files[0];
+// ========== PDF Support for All Tools ==========
+
+// Fonction pour extraire texte de PDF
+async function extractTextFromPDF(file) {
+    return new Promise(function(resolve, reject) {
+        if (typeof pdfjsLib === 'undefined') {
+            reject('PDF.js non chargé');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const typedArray = new Uint8Array(e.target.result);
+            
+            pdfjsLib.getDocument(typedArray).promise.then(function(pdf) {
+                const numPages = pdf.numPages;
+                const promises = [];
+                
+                for (let i = 1; i <= numPages; i++) {
+                    promises.push(
+                        pdf.getPage(i).then(function(page) {
+                            return page.getTextContent().then(function(content) {
+                                return content.items.map(function(item) {
+                                    return item.str;
+                                }).join(' ');
+                            });
+                        })
+                    );
+                }
+                
+                Promise.all(promises).then(function(pages) {
+                    resolve(pages.join('\n\n'));
+                }).catch(reject);
+                
+            }).catch(reject);
+        };
+        
+        reader.onerror = function() {
+            reject('Erreur lecture fichier');
+        };
+        
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Fonction générique pour charger fichier
+async function loadFileGeneric(file, targetInputId) {
     if (!file) return;
     
-    if (file.size > 5 * 1024 * 1024) {
-        alert('Le fichier est trop grand. Taille maximale: 5MB');
-        input.value = '';
+    if (file.size > 10 * 1024 * 1024) {
+        alert('Fichier trop grand. Max 10MB');
         return;
     }
     
     showLoading(true);
     
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        document.getElementById('corpus-input').value = e.target.result;
-        showLoading(false);
+    try {
+        let text;
+        const fileName = file.name.toLowerCase();
         
-        const inputEl = document.getElementById('corpus-input');
+        if (fileName.endsWith('.txt')) {
+            text = await new Promise(function(resolve, reject) {
+                const reader = new FileReader();
+                reader.onload = function(e) { resolve(e.target.result); };
+                reader.onerror = reject;
+                reader.readAsText(file, 'UTF-8');
+            });
+        } else if (fileName.endsWith('.pdf')) {
+            text = await extractTextFromPDF(file);
+        } else {
+            alert('Format non supporté. Utilisez .txt ou .pdf');
+            showLoading(false);
+            return;
+        }
+        
+        document.getElementById(targetInputId).value = text;
+        
+        // Animation succès
+        const inputEl = document.getElementById(targetInputId);
         inputEl.style.borderColor = '#3b82f6';
+        inputEl.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.4)';
         setTimeout(function() {
             inputEl.style.borderColor = '';
-        }, 1000);
-    };
-    
-    reader.onerror = function() {
-        alert('Erreur lors du chargement du fichier');
+            inputEl.style.boxShadow = '';
+        }, 1500);
+        
         showLoading(false);
-    };
-    
-    reader.readAsText(file, 'UTF-8');
+        
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors du chargement: ' + error);
+        showLoading(false);
+    }
+}
+
+// Fonctions pour chaque outil
+function loadFileForCorpus(input) {
+    const file = input.files[0];
+    loadFileGeneric(file, 'corpus-input');
+}
+
+function loadFileForSemantic(input) {
+    const file = input.files[0];
+    loadFileGeneric(file, 'semantic-input');
+}
+
+function loadFileForConcordance(input) {
+    const file = input.files[0];
+    loadFileGeneric(file, 'conc-input');
+}
+
+function loadFileForComparison(input, textNumber) {
+    const file = input.files[0];
+    const targetId = textNumber === 1 ? 'compare-text1' : 'compare-text2';
+    loadFileGeneric(file, targetId);
+}
+
+function loadFileForVisualization(input) {
+    const file = input.files[0];
+    loadFileGeneric(file, 'viz-input');
 }
 
 // ========== AI Analysis ==========
@@ -162,7 +251,7 @@ function analyzeCorpus() {
         let html = generateCorpusHTML(analysis);
         resultsDiv.innerHTML = html;
         
-        // Tentative AI
+        // Tentative AI (optionnel)
         try {
             const prompt = 'En tant qu\'expert linguiste, analysez ce corpus en 3-4 phrases: richesse lexicale, registre, style. Soyez concis et académique.';
             const aiResult = await analyzeWithAI(text, prompt);
@@ -230,10 +319,21 @@ function generateCorpusHTML(analysis) {
 }
 
 // ========== Autres fonctions simplifiées ==========
-function analyzeSemantic() { alert('Analyse sémantique - Fonctionnalité disponible'); }
-function generateConcordance() { alert('Concordancier - Fonctionnalité disponible'); }
-function compareTexts() { alert('Comparaison - Fonctionnalité disponible'); }
-function visualizeData() { alert('Visualisation - Fonctionnalité disponible'); }
+function analyzeSemantic() { 
+    alert('Analyse sémantique - Fonctionnalité disponible'); 
+}
+
+function generateConcordance() { 
+    alert('Concordancier - Fonctionnalité disponible'); 
+}
+
+function compareTexts() { 
+    alert('Comparaison - Fonctionnalité disponible'); 
+}
+
+function visualizeData() { 
+    alert('Visualisation - Fonctionnalité disponible'); 
+}
 
 function exportToPDF(toolType) {
     if (typeof jspdf === 'undefined') {
@@ -271,4 +371,4 @@ function getStopWords(lang) {
 }
 
 console.log('%c🔬 LinguaLab Pro v2.0', 'font-size:20px;color:#3b82f6;font-weight:bold');
-console.log('%c✅ Système chargé avec succès', 'color:#10b981');
+console.log('%c✅ PDF Support activé - Traitement 100% local', 'color:#10b981');
