@@ -9,38 +9,50 @@ document.addEventListener('DOMContentLoaded', () => {
     initTheme();
 });
 
-// ========== Gestion du Thème ==========
+// ========== Gestion du Thème (مُصلح) ==========
+function initTheme() {
+    document.body.classList.remove('light-mode');
+    document.body.classList.add('dark-mode');
+    darkMode = true;
+    updateThemeIcon();
+    updateParticlesVisibility();
+}
+
+function updateThemeIcon() {
+    const icon = document.getElementById('theme-icon');
+    if (icon) {
+        icon.className = darkMode ? 'fas fa-sun' : 'fas fa-moon';
+    }
+}
+
 function toggleTheme() {
     darkMode = !darkMode;
     const body = document.body;
-    const themeIcon = document.querySelector('.theme-toggle i');
     
     if (darkMode) {
         body.classList.remove('light-mode');
         body.classList.add('dark-mode');
-        themeIcon.className = 'fas fa-sun';
     } else {
         body.classList.remove('dark-mode');
         body.classList.add('light-mode');
-        themeIcon.className = 'fas fa-moon';
     }
     
-    updateParticlesVisibility();
-}
-
-function initTheme() {
-    document.body.classList.add('dark-mode');
+    updateThemeIcon();
     updateParticlesVisibility();
 }
 
 function updateParticlesVisibility() {
     const particles = document.getElementById('particles-container');
-    particles.style.opacity = darkMode ? '1' : '0';
+    if (particles) {
+        particles.style.opacity = darkMode ? '1' : '0';
+    }
 }
 
 // ========== Particules Animées ==========
 function initParticles() {
     const container = document.getElementById('particles-container');
+    if (!container) return;
+    
     for (let i = 0; i < 40; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
@@ -225,8 +237,8 @@ function performSemanticAnalysis(text, type) {
 }
 
 function analyzeSentiment(text, words) {
-    const positiveWords = ['bon', 'bien', 'excellent', 'magnifique', 'merveilleux', 'parfait', 'génial', 'formidable', 'agréable'];
-    const negativeWords = ['mauvais', 'mal', 'horrible', 'terrible', 'nul', 'pire', 'médiocre', 'désagréable'];
+    const positiveWords = ['bon', 'bien', 'excellent', 'magnifique', 'merveilleux', 'parfait', 'génial', 'formidable', 'agréable', 'superbe', 'remarquable'];
+    const negativeWords = ['mauvais', 'mal', 'horrible', 'terrible', 'nul', 'pire', 'médiocre', 'désagréable', 'catastrophique', 'affreux'];
     
     const posCount = words.filter(w => positiveWords.includes(w)).length;
     const negCount = words.filter(w => negativeWords.includes(w)).length;
@@ -279,16 +291,19 @@ function displaySemanticResults(analysis, type) {
         html += `<div class="stat-card"><div class="stat-value">${analysis.score}</div><div class="stat-label">Score</div></div>`;
         html += '</div>';
     } else if (type === 'entities') {
-        html += `<h3 style="margin-top:20px;">Entités (${analysis.entities.length})</h3><div class="word-cloud">`;
+        html += `<h3 style="margin-top:20px;"><i class="fas fa-user"></i> Entités (${analysis.entities.length})</h3><div class="word-cloud">`;
         analysis.entities.slice(0, 40).forEach(e => html += `<div class="word-item">${e}</div>`);
         html += '</div>';
     } else if (type === 'themes') {
-        html += '<h3 style="margin-top:20px;">Thèmes</h3><div class="word-cloud">';
-        analysis.themes.forEach(([t, f]) => html += `<div class="word-item" style="font-size:${12 + f/analysis.themes[0][1]*20}px">${t}</div>`);
+        html += '<h3 style="margin-top:20px;"><i class="fas fa-hashtag"></i> Thèmes</h3><div class="word-cloud">';
+        analysis.themes.forEach(([t, f]) => {
+            const size = 12 + (f/analysis.themes[0][1]*20);
+            html += `<div class="word-item" style="font-size:${size}px">${t}</div>`;
+        });
         html += '</div>';
     } else if (type === 'collocations') {
-        html += '<h3 style="margin-top:20px;">Collocations</h3><div class="word-cloud">';
-        analysis.collocations.forEach(([c, f]) => html += `<div class="word-item">${c} <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;">${f}</span></div>`);
+        html += '<h3 style="margin-top:20px;"><i class="fas fa-link"></i> Collocations</h3><div class="word-cloud">';
+        analysis.collocations.forEach(([c, f]) => html += `<div class="word-item">${c} <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;font-size:0.8em;">${f}</span></div>`);
         html += '</div>';
     }
     return html;
@@ -331,7 +346,7 @@ function extractConcordances(text, keyword, contextSize) {
 
 function displayConcordances(concordances, keyword) {
     let html = `<h3><i class="fas fa-search"></i> Concordances KWIC pour "${keyword}"</h3>`;
-    html += `<p style="color:var(--text-secondary);margin-bottom:20px;">${concordances.length} occurrence(s)</p>`;
+    html += `<p style="color:var(--text-secondary);margin-bottom:20px;"><i class="fas fa-check-circle"></i> ${concordances.length} occurrence(s)</p>`;
     
     if (concordances.length === 0) {
         html += '<p style="text-align:center;padding:40px;color:var(--text-secondary);">Aucune occurrence.</p>';
@@ -409,17 +424,28 @@ function displayComparisonResults(c) {
     let html = '<h3><i class="fas fa-balance-scale"></i> Comparaison</h3>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:25px 0;">';
     html += `<div style="border:2px solid var(--neon-cyan);border-radius:15px;padding:20px;">
-        <h4 style="color:var(--neon-cyan);">Texte 1</h4>
-        <p>Mots: ${c.text1.words}</p><p>Uniques: ${c.text1.unique}</p><p>TTR: ${c.text1.ttr}%</p>
+        <h4 style="color:var(--neon-cyan);margin-bottom:15px;"><i class="fas fa-file-alt"></i> Texte 1</h4>
+        <p>Mots: <strong>${c.text1.words}</strong></p>
+        <p>Uniques: <strong>${c.text1.unique}</strong></p>
+        <p>Phrases: <strong>${c.text1.sentences}</strong></p>
+        <p>TTR: <strong>${c.text1.ttr}%</strong></p>
     </div>`;
     html += `<div style="border:2px solid var(--neon-purple);border-radius:15px;padding:20px;">
-        <h4 style="color:var(--neon-purple);">Texte 2</h4>
-        <p>Mots: ${c.text2.words}</p><p>Uniques: ${c.text2.unique}</p><p>TTR: ${c.text2.ttr}%</p>
+        <h4 style="color:var(--neon-purple);margin-bottom:15px;"><i class="fas fa-file-alt"></i> Texte 2</h4>
+        <p>Mots: <strong>${c.text2.words}</strong></p>
+        <p>Uniques: <strong>${c.text2.unique}</strong></p>
+        <p>Phrases: <strong>${c.text2.sentences}</strong></p>
+        <p>TTR: <strong>${c.text2.ttr}%</strong></p>
     </div>`;
     html += '</div>';
-    html += `<div style="text-align:center;padding:20px;background:var(--bg-primary);border-radius:15px;">
-        <h3 style="color:var(--neon-green);">Similarité: ${c.similarity}%</h3>
+    html += `<div style="text-align:center;padding:20px;background:var(--bg-primary);border-radius:15px;margin:20px 0;">
+        <h3 style="color:var(--neon-green);"><i class="fas fa-percentage"></i> Similarité: ${c.similarity}%</h3>
     </div>`;
+    
+    html += `<h3 style="margin-top:30px;"><i class="fas fa-intersection"></i> Mots Partagés (${c.shared.length})</h3><div class="word-cloud">`;
+    c.shared.slice(0,40).forEach(w => html += `<div class="word-item">${w}</div>`);
+    html += '</div>';
+    
     document.getElementById('comparison-results').innerHTML = html;
 }
 
@@ -427,7 +453,7 @@ function createComparisonCharts(c) {
     const container = document.getElementById('comparison-charts');
     Object.values(chartInstances).forEach(ch => ch.destroy());
     chartInstances = {};
-    container.innerHTML = '<h3>Visualisations</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;"><div class="chart-wrapper"><canvas id="comparisonChart1"></canvas></div><div class="chart-wrapper"><canvas id="comparisonChart2"></canvas></div></div>';
+    container.innerHTML = '<h3><i class="fas fa-chart-bar"></i> Visualisations</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;"><div class="chart-wrapper"><canvas id="comparisonChart1"></canvas></div><div class="chart-wrapper"><canvas id="comparisonChart2"></canvas></div></div>';
     
     const ctx1 = document.getElementById('comparisonChart1');
     if(ctx1) {
@@ -436,11 +462,44 @@ function createComparisonCharts(c) {
              {
                 labels: ['Mots','Uniques','Phrases'],
                 datasets: [
-                    {label:'Texte 1',[c.text1.words,c.text1.unique,c.text1.sentences],backgroundColor:'rgba(0,243,255,0.6)'},
-                    {label:'Texte 2',[c.text2.words,c.text2.unique,c.text2.sentences],backgroundColor:'rgba(176,69,255,0.6)'}
+                    {label:'Texte 1',[c.text1.words,c.text1.unique,c.text1.sentences],backgroundColor:'rgba(0,243,255,0.6)',borderColor:'rgba(0,243,255,1)',borderWidth:2},
+                    {label:'Texte 2',[c.text2.words,c.text2.unique,c.text2.sentences],backgroundColor:'rgba(176,69,255,0.6)',borderColor:'rgba(176,69,255,1)',borderWidth:2}
                 ]
             },
-            options: {responsive:true,plugins:{title:{display:true,text:'Comparaison'}}}
+            options: {
+                responsive:true,
+                plugins:{
+                    title:{display:true,text:'Comparaison Statistique',color:darkMode?'#e8eaf6':'#2d3436',font:{size:16,weight:'bold'}},
+                    legend:{labels:{color:darkMode?'#e8eaf6':'#2d3436'}}
+                },
+                scales:{
+                    y:{beginAtZero:true,ticks:{color:darkMode?'#b8bdc9':'#636e72'},grid:{color:darkMode?'#2d3561':'#dfe6e9'}},
+                    x:{ticks:{color:darkMode?'#b8bdc9':'#636e72'},grid:{color:darkMode?'#2d3561':'#dfe6e9'}}
+                }
+            }
+        });
+    }
+    
+    const ctx2 = document.getElementById('comparisonChart2');
+    if(ctx2) {
+        chartInstances.comp2 = new Chart(ctx2, {
+            type:'pie',
+            {
+                labels:['Partagés','Uniques T1','Uniques T2'],
+                datasets:[{
+                    [c.shared.length,c.uniqueTo1.length,c.uniqueTo2.length],
+                    backgroundColor:['rgba(0,255,135,0.6)','rgba(0,243,255,0.6)','rgba(176,69,255,0.6)'],
+                    borderColor:['rgba(0,255,135,1)','rgba(0,243,255,1)','rgba(176,69,255,1)'],
+                    borderWidth:2
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    title:{display:true,text:'Distribution',color:darkMode?'#e8eaf6':'#2d3436',font:{size:16,weight:'bold'}},
+                    legend:{labels:{color:darkMode?'#e8eaf6':'#2d3436'}}
+                }
+            }
         });
     }
 }
@@ -467,11 +526,14 @@ function createWordCloud(text) {
     words.filter(w=>!stopWords.has(w)&&w.length>2).forEach(w=>freq[w]=(freq[w]||0)+1);
     const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,60);
     const max = sorted[0][1];
-    let html = '<h3>Nuage de Mots</h3><div style="padding:40px;background:var(--bg-primary);border-radius:15px;display:flex;flex-wrap:wrap;gap:15px;justify-content:center;min-height:400px;">';
+    let html = '<h3><i class="fas fa-cloud"></i> Nuage de Mots</h3><div style="padding:40px;background:var(--bg-primary);border-radius:15px;display:flex;flex-wrap:wrap;gap:15px;justify-content:center;align-items:center;min-height:400px;">';
     sorted.forEach(([w,f]) => {
         const size = 14+(f/max)*40;
         const hue = Math.random()*60+(darkMode?160:200);
-        html += `<span style="font-size:${size}px;color:hsl(${hue},100%,${darkMode?70:50}%);font-weight:bold;cursor:pointer;" title="${f}">${w}</span>`;
+        html += `<span style="font-size:${size}px;color:hsl(${hue},100%,${darkMode?70:50}%);font-weight:bold;cursor:pointer;transition:all 0.3s;" 
+                 onmouseover="this.style.transform='scale(1.3)';this.style.textShadow='0 0 20px currentColor';" 
+                 onmouseout="this.style.transform='scale(1)';this.style.textShadow='none';"
+                 title="Fréquence: ${f}">${w}</span>`;
     });
     html += '</div>';
     document.getElementById('viz-results').innerHTML = html;
@@ -482,14 +544,33 @@ function createFrequencyChart(text) {
     const freq = {};
     words.filter(w=>!getStopWords('fr').has(w)&&w.length>2).forEach(w=>freq[w]=(freq[w]||0)+1);
     const sorted = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,20);
-    document.getElementById('viz-results').innerHTML = '<h3>Fréquences</h3><div class="chart-wrapper"><canvas id="frequencyChart"></canvas></div>';
+    document.getElementById('viz-results').innerHTML = '<h3><i class="fas fa-chart-bar"></i> Fréquences</h3><div class="chart-wrapper"><canvas id="frequencyChart"></canvas></div>';
     const ctx = document.getElementById('frequencyChart');
     if(ctx) {
         if(chartInstances.frequency) chartInstances.frequency.destroy();
         chartInstances.frequency = new Chart(ctx, {
             type:'bar',
-            {labels:sorted.map(([w])=>w),datasets:[{label:'Fréquence',sorted.map(([_,f])=>f)}]},
-            options:{responsive:true}
+            {
+                labels:sorted.map(([w])=>w),
+                datasets:[{
+                    label:'Fréquence',
+                    sorted.map(([_,f])=>f),
+                    backgroundColor:sorted.map((_,i)=>{const hue=180+i*10;return `hsla(${hue},100%,${darkMode?60:50}%,0.7)`;}),
+                    borderColor:sorted.map((_,i)=>{const hue=180+i*10;return `hsl(${hue},100%,${darkMode?60:50}%)`;}),
+                    borderWidth:2
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    legend:{display:false},
+                    title:{display:true,text:'Top 20 Mots',color:darkMode?'#e8eaf6':'#2d3436',font:{size:18,weight:'bold'}}
+                },
+                scales:{
+                    y:{beginAtZero:true,ticks:{color:darkMode?'#b8bdc9':'#636e72'},grid:{color:darkMode?'#2d3561':'#dfe6e9'}},
+                    x:{ticks:{color:darkMode?'#b8bdc9':'#636e72',maxRotation:45,minRotation:45},grid:{color:darkMode?'#2d3561':'#dfe6e9'}}
+                }
+            }
         });
     }
 }
@@ -505,8 +586,8 @@ function createNgramsView(text) {
     const freq = {};
     trigrams.forEach(t=>freq[t]=(freq[t]||0)+1);
     const top = Object.entries(freq).filter(([_,f])=>f>1).sort((a,b)=>b[1]-a[1]).slice(0,30);
-    let html = '<h3>N-grammes</h3><div class="word-cloud">';
-    top.forEach(([t,f]) => html += `<div class="word-item">${t} <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;">${f}</span></div>`);
+    let html = '<h3><i class="fas fa-font"></i> N-grammes</h3><p style="color:var(--text-secondary);margin-bottom:20px;"><i class="fas fa-info-circle"></i> Séquences de 3 mots</p><div class="word-cloud">';
+    top.forEach(([t,f]) => html += `<div class="word-item">${t} <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;margin-left:5px;font-size:0.8em;">${f}</span></div>`);
     html += '</div>';
     document.getElementById('viz-results').innerHTML = html;
 }
@@ -521,7 +602,7 @@ function createLexicalDiversityChart(text) {
         growth.push({position:i,unique:unique.size});
     }
     const ttr = ((unique.size/words.length)*100).toFixed(2);
-    document.getElementById('viz-results').innerHTML = `<h3>Diversité Lexicale</h3><div class="stats-grid">
+    document.getElementById('viz-results').innerHTML = `<h3><i class="fas fa-chart-line"></i> Diversité</h3><div class="stats-grid">
         <div class="stat-card"><div class="stat-value">${words.length}</div><div class="stat-label">Tokens</div></div>
         <div class="stat-card"><div class="stat-value">${unique.size}</div><div class="stat-label">Types</div></div>
         <div class="stat-card"><div class="stat-value">${ttr}%</div><div class="stat-label">TTR</div></div>
@@ -532,8 +613,29 @@ function createLexicalDiversityChart(text) {
         if(chartInstances.lexical) chartInstances.lexical.destroy();
         chartInstances.lexical = new Chart(ctx, {
             type:'line',
-            {labels:growth.map(g=>g.position),datasets:[{label:'Uniques',growth.map(g=>g.unique),borderColor:'rgba(0,243,255,1)',fill:true}]},
-            options:{responsive:true}
+            {
+                labels:growth.map(g=>g.position),
+                datasets:[{
+                    label:'Mots uniques',
+                    growth.map(g=>g.unique),
+                    borderColor:'rgba(0,243,255,1)',
+                    backgroundColor:'rgba(0,243,255,0.1)',
+                    borderWidth:3,
+                    tension:0.4,
+                    fill:true
+                }]
+            },
+            options:{
+                responsive:true,
+                plugins:{
+                    title:{display:true,text:'Croissance du Vocabulaire',color:darkMode?'#e8eaf6':'#2d3436',font:{size:18,weight:'bold'}},
+                    legend:{labels:{color:darkMode?'#e8eaf6':'#2d3436'}}
+                },
+                scales:{
+                    y:{beginAtZero:true,ticks:{color:darkMode?'#b8bdc9':'#636e72'},grid:{color:darkMode?'#2d3561':'#dfe6e9'},title:{display:true,text:'Mots uniques',color:darkMode?'#b8bdc9':'#636e72'}},
+                    x:{ticks:{color:darkMode?'#b8bdc9':'#636e72'},grid:{color:darkMode?'#2d3561':'#dfe6e9'},title:{display:true,text:'Position',color:darkMode?'#b8bdc9':'#636e72'}}
+                }
+            }
         });
     }
 }
@@ -548,10 +650,12 @@ async function exportToPDF(toolType) {
         let y=20;
         const m=15;
         const w=doc.internal.pageSize.width-2*m;
+        
         doc.setFontSize(20);
         doc.setTextColor(0,132,227);
         doc.text('LinguaLab Pro',m,y);
         y+=10;
+        
         doc.setFontSize(12);
         doc.setTextColor(100);
         doc.text('Rapport d\'Analyse',m,y);
@@ -561,6 +665,11 @@ async function exportToPDF(toolType) {
         doc.text('Par: Bettahar Abdelkrim',m,y);
         y+=15;
         
+        doc.setDrawColor(0,132,227);
+        doc.setLineWidth(0.5);
+        doc.line(m,y,doc.internal.pageSize.width-m,y);
+        y+=10;
+        
         let div;
         if(toolType==='corpus') div=document.getElementById('corpus-results');
         else if(toolType==='semantic') div=document.getElementById('semantic-results');
@@ -568,7 +677,11 @@ async function exportToPDF(toolType) {
         else if(toolType==='comparison') div=document.getElementById('comparison-results');
         else if(toolType==='visualization') div=document.getElementById('viz-results');
         
-        if(!div||!div.innerHTML) { alert('Effectuez d\'abord une analyse'); showLoading(false); return; }
+        if(!div||!div.innerHTML) { 
+            alert('Effectuez d\'abord une analyse'); 
+            showLoading(false); 
+            return; 
+        }
         
         const txt = div.innerText;
         doc.setFontSize(10);
@@ -577,6 +690,7 @@ async function exportToPDF(toolType) {
         doc.text(lines,m,y);
         doc.save(`LinguaLab_${toolType}_${Date.now()}.pdf`);
     } catch(e) {
+        console.error('PDF Error:',e);
         alert('Erreur PDF');
     } finally {
         showLoading(false);
@@ -586,17 +700,18 @@ async function exportToPDF(toolType) {
 // ========== Utilitaires ==========
 function getStopWords(lang) {
     const map = {
-        'fr':['le','la','les','un','une','des','de','du','et','ou','mais','donc','car','ni','or','à','dans','par','pour','en','vers','avec','sans','sous','sur','je','tu','il','elle','nous','vous','ils','elles','ce','mon','ma','est','sont','être','avoir','au','ne','pas','qui','que','où'],
-        'en':['the','a','an','and','or','but','in','on','at','to','for','of','with','is','are','was','were','be','have','has','this','that'],
-        'ar':['في','من','إلى','على','عن','هذا','أن','ما','لا'],
-        'es':['el','la','los','las','un','de','y','en','que','es'],
-        'it':['il','lo','la','i','le','un','di','e','che','è']
+        'fr':['le','la','les','un','une','des','de','du','et','ou','mais','donc','car','ni','or','à','dans','par','pour','en','vers','avec','sans','sous','sur','je','tu','il','elle','nous','vous','ils','elles','ce','cet','cette','ces','mon','ma','mes','ton','ta','tes','son','sa','ses','est','sont','être','avoir','au','aux','ne','pas','plus','qui','que','dont','où'],
+        'en':['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','as','is','was','are','were','be','been','being','have','has','had','do','does','did','will','would','should','could','may','might','must','can','this','that','these','those','i','you','he','she','it','we','they'],
+        'ar':['في','من','إلى','على','عن','هذا','هذه','ذلك','التي','الذي','أن','ما','لا','إن','كان','قد','لم','لن','كل','بعض','هو','هي','هم','هن'],
+        'es':['el','la','los','las','un','una','unos','unas','de','del','y','o','pero','en','por','para','con','sin','sobre','es','son','ser','estar','que','cual'],
+        'it':['il','lo','la','i','gli','le','un','uno','una','di','a','da','in','su','per','con','e','o','ma','che','è','sono','essere','avere']
     };
     return new Set(map[lang]||map['fr']);
 }
 
 function showLoading(show) {
-    document.getElementById('loading-overlay').classList.toggle('active',show);
+    const overlay = document.getElementById('loading-overlay');
+    if(overlay) overlay.classList.toggle('active',show);
 }
 
 console.log('%cLinguaLab Pro','font-size:24px;color:#00f3ff;font-weight:bold;');
