@@ -81,8 +81,74 @@ function showLoading(show) {
     if (overlay) overlay.classList.toggle('active', show);
 }
 
-// ========== Analyse de Corpus ==========
-function analyzeCorpus() {
+// ========== Upload File ==========
+function loadFile(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+        alert('Le fichier est trop grand. Taille maximale: 5MB');
+        input.value = '';
+        return;
+    }
+    
+    showLoading(true);
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const text = e.target.result;
+            document.getElementById('corpus-input').value = text;
+            showLoading(false);
+            
+            const inputEl = document.getElementById('corpus-input');
+            inputEl.style.borderColor = '#3b82f6';
+            inputEl.style.boxShadow = '0 0 20px rgba(59, 130, 246, 0.3)';
+            setTimeout(function() {
+                inputEl.style.borderColor = '';
+                inputEl.style.boxShadow = '';
+            }, 1000);
+            
+        } catch (error) {
+            console.error('Error reading file:', error);
+            alert('Erreur lors de la lecture du fichier');
+            showLoading(false);
+        }
+    };
+    
+    reader.onerror = function() {
+        alert('Erreur lors du chargement du fichier');
+        showLoading(false);
+    };
+    
+    reader.readAsText(file, 'UTF-8');
+}
+
+// ========== AI Analysis (Silent - no mention in UI) ==========
+async function analyzeWithAI(text, context) {
+    try {
+        const response = await fetch('/api/ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: text.substring(0, 1500), 
+                context: context 
+            })
+        });
+        
+        if (!response.ok) return null;
+        const data = await response.json();
+        return data.result || null;
+        
+    } catch (error) {
+        console.log('Enhanced analysis unavailable');
+        return null;
+    }
+}
+
+// ========== Analyse de Corpus avec Interprétation Avancée ==========
+async function analyzeCorpus() {
     console.log('analyzeCorpus called!');
     
     const input = document.getElementById('corpus-input');
@@ -97,8 +163,6 @@ function analyzeCorpus() {
     const text = input.value.trim();
     const lang = document.getElementById('corpus-lang').value;
     
-    console.log('Text length:', text.length);
-    
     if (!text || text.split(/\s+/).length < 10) {
         alert('Veuillez entrer un texte d\'au moins 10 mots.');
         return;
@@ -106,15 +170,33 @@ function analyzeCorpus() {
     
     showLoading(true);
     
-    setTimeout(function() {
+    setTimeout(async function() {
         try {
             const analysis = performCorpusAnalysis(text, lang);
-            const html = generateCorpusHTML(analysis);
+            let html = generateCorpusHTML(analysis);
             resultsDiv.innerHTML = html;
-            console.log('Analysis complete!');
+            
+            // Tentative d'interprétation linguistique avancée
+            try {
+                const prompt = 'En tant qu\'expert linguiste, analysez ce corpus en français. Commentez en 3-4 phrases concises : la richesse lexicale (TTR, hapax), le registre de langue, et les caractéristiques stylistiques principales. Soyez académique et précis.';
+                const interpretation = await analyzeWithAI(text, prompt);
+                
+                if (interpretation) {
+                    html += `
+                        <div class="interpretation-box">
+                            <h3><i class="fas fa-lightbulb"></i> Interprétation Linguistique</h3>
+                            <p>${interpretation.replace(/\n/g, '<br><br>')}</p>
+                        </div>
+                    `;
+                    resultsDiv.innerHTML = html;
+                }
+            } catch (e) {
+                // Continue sans interprétation avancée
+            }
+            
         } catch (error) {
             console.error('Error:', error);
-            resultsDiv.innerHTML = '<p style="color:red;">Erreur lors de l\'analyse</p>';
+            resultsDiv.innerHTML = '<p style="color:#e74c3c;">Erreur lors de l\'analyse</p>';
         } finally {
             showLoading(false);
         }
@@ -285,7 +367,7 @@ function displaySemanticResults(analysis, type) {
         html += '<h3 style="margin-top:20px;"><i class="fas fa-link"></i> Collocations</h3>';
         html += '<div class="word-cloud">';
         analysis.collocations.forEach(function([c, f]) {
-            html += '<div class="word-item">' + c + ' <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;font-size:0.8em;">' + f + '</span></div>';
+            html += '<div class="word-item">' + c + ' <span style="background:#3b82f6;color:#fff;padding:2px 6px;border-radius:10px;font-size:0.8em;">' + f + '</span></div>';
         });
         html += '</div>';
     }
@@ -357,7 +439,7 @@ function displayConcordances(concordances, keyword, resultsDiv) {
     resultsDiv.innerHTML = html;
 }
 
-// ========== Comparaison de Textes ==========
+// ========== Comparaison de Textes avec Charts ==========
 function compareTexts() {
     const text1 = document.getElementById('compare-text1').value.trim();
     const text2 = document.getElementById('compare-text2').value.trim();
@@ -413,15 +495,19 @@ function performTextComparison(text1, text2) {
 function displayComparisonResults(c, resultsDiv) {
     let html = '<h3><i class="fas fa-balance-scale"></i> Comparaison des Textes</h3>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:25px 0;">';
-    html += '<div style="border:2px solid var(--neon-cyan);border-radius:15px;padding:20px;">';
-    html += '<h4 style="color:var(--neon-cyan);margin-bottom:15px;"><i class="fas fa-file-alt"></i> Texte 1</h4>';
+    
+    // Texte 1 - Bleu
+    html += '<div style="border:2px solid #3b82f6;border-radius:15px;padding:22px;background:linear-gradient(135deg,rgba(59,130,246,0.08),rgba(255,255,255,0.95));box-shadow:0 4px 15px rgba(59,130,246,0.12);">';
+    html += '<h4 style="color:#3b82f6;margin-bottom:15px;font-weight:700;"><i class="fas fa-file-alt"></i> Texte 1</h4>';
     html += '<p>Mots: <strong>' + c.text1.words + '</strong></p>';
     html += '<p>Uniques: <strong>' + c.text1.unique + '</strong></p>';
     html += '<p>Phrases: <strong>' + c.text1.sentences + '</strong></p>';
     html += '<p>TTR: <strong>' + c.text1.ttr + '%</strong></p>';
     html += '</div>';
-    html += '<div style="border:2px solid var(--neon-purple);border-radius:15px;padding:20px;">';
-    html += '<h4 style="color:var(--neon-purple);margin-bottom:15px;"><i class="fas fa-file-alt"></i> Texte 2</h4>';
+    
+    // Texte 2 - Blanc avec bordure bleue
+    html += '<div style="border:2px solid #60a5fa;border-radius:15px;padding:22px;background:linear-gradient(135deg,#ffffff,rgba(96,165,250,0.06));box-shadow:0 4px 15px rgba(96,165,250,0.12);">';
+    html += '<h4 style="color:#60a5fa;margin-bottom:15px;font-weight:700;"><i class="fas fa-file-alt"></i> Texte 2</h4>';
     html += '<p>Mots: <strong>' + c.text2.words + '</strong></p>';
     html += '<p>Uniques: <strong>' + c.text2.unique + '</strong></p>';
     html += '<p>Phrases: <strong>' + c.text2.sentences + '</strong></p>';
@@ -429,16 +515,110 @@ function displayComparisonResults(c, resultsDiv) {
     html += '</div>';
     html += '</div>';
     
-    html += '<div style="text-align:center;padding:20px;background:var(--bg-primary);border-radius:15px;margin:20px 0;">';
-    html += '<h3 style="color:var(--neon-green);"><i class="fas fa-percentage"></i> Similarité: ' + c.similarity + '%</h3>';
+    html += '<div style="text-align:center;padding:20px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.95));border-radius:15px;margin:20px 0;border:2px solid rgba(16,185,129,0.3);">';
+    html += '<h3 style="color:#10b981;"><i class="fas fa-percentage"></i> Similarité: ' + c.similarity + '%</h3>';
     html += '</div>';
     
-    html += '<h3 style="margin-top:30px;"><i class="fas fa-intersection"></i> Mots Partagés (' + c.shared.length + ')</h3>';
+    // Graphique de comparaison
+    html += '<div class="comparison-chart-container">';
+    html += '<h3><i class="fas fa-chart-bar"></i> Comparaison Visuelle</h3>';
+    html += '<canvas id="comparisonChart" style="max-height:350px;"></canvas>';
+    html += '</div>';
+    
+    html += '<h3 style="margin-top:30px;color:#3b82f6;"><i class="fas fa-link"></i> Mots Partagés (' + c.shared.length + ')</h3>';
     html += '<div class="word-cloud">';
     c.shared.slice(0, 40).forEach(w => html += '<div class="word-item">' + w + '</div>');
     html += '</div>';
     
     resultsDiv.innerHTML = html;
+    
+    setTimeout(function() {
+        createComparisonChart(c);
+    }, 200);
+}
+
+function createComparisonChart(c) {
+    const canvas = document.getElementById('comparisonChart');
+    if (!canvas || typeof Chart === 'undefined') {
+        console.log('Chart.js not loaded or canvas not found');
+        return;
+    }
+    
+    const ctx = canvas.getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'bar',
+         {
+            labels: ['Mots totaux', 'Mots uniques', 'Phrases', 'TTR (%)'],
+            datasets: [
+                {
+                    label: 'Texte 1',
+                     [c.text1.words, c.text1.unique, c.text1.sentences, c.text1.ttr],
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgba(37, 99, 235, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                },
+                {
+                    label: 'Texte 2',
+                     [c.text2.words, c.text2.unique, c.text2.sentences, c.text2.ttr],
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    borderColor: 'rgba(96, 165, 250, 1)',
+                    borderWidth: 2,
+                    borderRadius: 8
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: darkMode ? '#e8eaf6' : '#2d3436',
+                        font: { size: 13, weight: '600' },
+                        padding: 15
+                    }
+                },
+                title: {
+                    display: false
+                },
+                tooltip: {
+                    backgroundColor: darkMode ? '#1a1f3a' : '#ffffff',
+                    titleColor: darkMode ? '#e8eaf6' : '#2d3436',
+                    bodyColor: darkMode ? '#b8bdc9' : '#636e72',
+                    borderColor: '#3b82f6',
+                    borderWidth: 2,
+                    padding: 12,
+                    cornerRadius: 8
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: darkMode ? '#b8bdc9' : '#636e72',
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        color: darkMode ? 'rgba(59, 130, 246, 0.1)' : 'rgba(37, 99, 235, 0.1)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: darkMode ? '#b8bdc9' : '#636e72',
+                        font: { size: 12 }
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
 }
 
 // ========== Visualisation ==========
@@ -481,8 +661,8 @@ function createWordCloud(text, resultsDiv) {
     html += '<div style="padding:40px;background:var(--bg-primary);border-radius:15px;display:flex;flex-wrap:wrap;gap:15px;justify-content:center;align-items:center;min-height:300px;">';
     sorted.forEach(function([w, f]) {
         const size = 14 + (f / max) * 40;
-        const hue = Math.random() * 60 + (darkMode ? 160 : 200);
-        html += '<span style="font-size:' + size + 'px;color:hsl(' + hue + ',100%,' + (darkMode ? 70 : 50) + '%);font-weight:bold;cursor:pointer;transition:all 0.3s;" title="Fréquence: ' + f + '">' + w + '</span>';
+        const opacity = 0.7 + (f / max) * 0.3;
+        html += '<span style="font-size:' + size + 'px;color:rgba(59,130,246,' + opacity + ');font-weight:bold;cursor:pointer;transition:all 0.3s;" title="Fréquence: ' + f + '">' + w + '</span>';
     });
     html += '</div>';
     
@@ -502,10 +682,10 @@ function createFrequencyView(text, resultsDiv) {
         html += '<div style="margin:10px 0;">';
         html += '<div style="display:flex;justify-content:space-between;margin-bottom:5px;">';
         html += '<span style="font-weight:600;">' + w + '</span>';
-        html += '<span style="color:var(--neon-cyan);">' + f + '</span>';
+        html += '<span style="color:#3b82f6;">' + f + '</span>';
         html += '</div>';
         html += '<div style="background:var(--bg-secondary);height:25px;border-radius:10px;overflow:hidden;">';
-        html += '<div style="background:linear-gradient(90deg,var(--neon-cyan),var(--neon-purple));height:100%;width:' + barWidth + '%;transition:width 0.5s;"></div>';
+        html += '<div style="background:linear-gradient(90deg,#3b82f6,#60a5fa);height:100%;width:' + barWidth + '%;transition:width 0.5s;"></div>';
         html += '</div>';
         html += '</div>';
     });
@@ -530,7 +710,7 @@ function createNgramsView(text, resultsDiv) {
     html += '<p style="color:var(--text-secondary);margin-bottom:20px;"><i class="fas fa-info-circle"></i> Séquences de 3 mots consécutifs</p>';
     html += '<div class="word-cloud">';
     top.forEach(function([t, f]) {
-        html += '<div class="word-item">' + t + ' <span style="background:var(--neon-cyan);color:#fff;padding:2px 6px;border-radius:10px;margin-left:5px;font-size:0.8em;">' + f + '</span></div>';
+        html += '<div class="word-item">' + t + ' <span style="background:#3b82f6;color:#fff;padding:2px 6px;border-radius:10px;margin-left:5px;font-size:0.8em;">' + f + '</span></div>';
     });
     html += '</div>';
     
@@ -570,7 +750,7 @@ function exportToPDF(toolType) {
             
             // En-tête
             doc.setFontSize(20);
-            doc.setTextColor(9, 132, 227);
+            doc.setTextColor(59, 130, 246);
             doc.text('LinguaLab Pro', margin, y);
             y += 10;
             
@@ -586,7 +766,7 @@ function exportToPDF(toolType) {
             y += 15;
             
             // Ligne de séparation
-            doc.setDrawColor(9, 132, 227);
+            doc.setDrawColor(59, 130, 246);
             doc.setLineWidth(0.5);
             doc.line(margin, y, doc.internal.pageSize.width - margin, y);
             y += 10;
@@ -670,11 +850,11 @@ function getStopWords(lang) {
 }
 
 // Messages console
-console.log('%c🔬 LinguaLab Pro', 'font-size:24px;color:#00f3ff;font-weight:bold;text-shadow:0 0 10px #00f3ff;');
-console.log('%c✨ Version 1.0 - Développé par Bettahar Abdelkrim', 'font-size:14px;color:#b045ff;font-weight:bold;');
-console.log('%c🎓 Université de Mostaganem - Département de Langue Française', 'font-size:12px;color:#00ff87;');
-console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color:#00f3ff;');
+console.log('%c🔬 LinguaLab Pro', 'font-size:24px;color:#3b82f6;font-weight:bold;text-shadow:0 0 10px #3b82f6;');
+console.log('%c✨ Version 2.0 - Développé par Bettahar Abdelkrim', 'font-size:14px;color:#60a5fa;font-weight:bold;');
+console.log('%c🎓 Université de Mostaganem - Département de Langue Française', 'font-size:12px;color:#3b82f6;');
+console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color:#3b82f6;');
 console.log('%cℹ️  Toutes les fonctionnalités sont opérationnelles', 'font-size:12px;color:#fff;');
 console.log('%c📊 Analyse de Corpus | 🧠 Analyse Sémantique | 🔍 Concordancier KWIC', 'font-size:11px;color:#b8bdc9;');
 console.log('%c⚖️  Comparaison | 📈 Visualisation | 📄 Export PDF', 'font-size:11px;color:#b8bdc9;');
-console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color:#00f3ff;');
+console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color:#3b82f6;');
