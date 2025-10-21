@@ -111,7 +111,7 @@ async function analyzeWithAI(text, context) {
     }
 }
 
-// ========== Analyse de Corpus ==========
+// ========== Analyse de Corpus (مُصلح) ==========
 async function analyzeCorpus() {
     const text = document.getElementById('corpus-input').value.trim();
     const lang = document.getElementById('corpus-lang').value;
@@ -123,26 +123,40 @@ async function analyzeCorpus() {
     
     showLoading(true);
     
-    setTimeout(async () => {
+    // تأخير صغير لعرض التحميل
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
         const analysis = performCorpusAnalysis(text, lang);
         let html = generateCorpusHTML(analysis);
         
-        // Analyse intelligente cachée via API
-        const aiInsight = await analyzeWithAI(
-            text,
-            'Analyse de corpus - expliquez la richesse lexicale, le style et les patterns linguistiques de manière académique'
-        );
+        // عرض النتائج فوراً
+        document.getElementById('corpus-results').innerHTML = html;
         
-        if (aiInsight) {
-            html += `<div style="margin-top:25px; padding:20px; background:var(--bg-primary); border-left:4px solid var(--neon-purple); border-radius:12px;">
-                <h3><i class="fas fa-lightbulb"></i> Interprétation Linguistique</h3>
-                <p style="line-height:1.8; color:var(--text-primary);">${aiInsight.replace(/\n/g, '<br>')}</p>
-            </div>`;
+        // محاولة الحصول على تحليل ذكي
+        try {
+            const aiInsight = await analyzeWithAI(
+                text,
+                'Analyse de corpus - expliquez la richesse lexicale, le style et les patterns linguistiques de manière académique'
+            );
+            
+            if (aiInsight) {
+                html += `<div style="margin-top:25px; padding:20px; background:var(--bg-primary); border-left:4px solid var(--neon-purple); border-radius:12px;">
+                    <h3><i class="fas fa-lightbulb"></i> Interprétation Linguistique</h3>
+                    <p style="line-height:1.8; color:var(--text-primary);">${aiInsight.replace(/\n/g, '<br>')}</p>
+                </div>`;
+                document.getElementById('corpus-results').innerHTML = html;
+            }
+        } catch (aiError) {
+            console.log('AI unavailable:', aiError);
         }
         
-        document.getElementById('corpus-results').innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur lors de l\'analyse');
+    } finally {
         showLoading(false);
-    }, 500);
+    }
 }
 
 function performCorpusAnalysis(text, lang) {
@@ -193,7 +207,7 @@ function generateCorpusHTML(analysis) {
     return html;
 }
 
-// ========== Analyse Sémantique ==========
+// ========== Analyse Sémantique (مُصلح) ==========
 async function analyzeSemantic() {
     const text = document.getElementById('semantic-input').value.trim();
     const type = document.getElementById('semantic-type').value;
@@ -204,27 +218,33 @@ async function analyzeSemantic() {
     }
     
     showLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 100));
     
-    setTimeout(async () => {
+    try {
         const analysis = performSemanticAnalysis(text, type);
         let html = displaySemanticResults(analysis, type);
+        document.getElementById('semantic-results').innerHTML = html;
         
-        // Analyse sémantique intelligente via API
-        const aiAnalysis = await analyzeWithAI(
-            text,
-            `Analyse sémantique de type ${type} - fournissez des insights linguistiques approfondis`
-        );
-        
-        if (aiAnalysis) {
-            html += `<div style="margin-top:25px; padding:20px; background:var(--bg-primary); border-left:4px solid var(--neon-purple); border-radius:12px;">
-                <h3><i class="fas fa-brain"></i> Analyse Approfondie</h3>
-                <p style="line-height:1.8; color:var(--text-primary);">${aiAnalysis.replace(/\n/g, '<br>')}</p>
-            </div>`;
+        try {
+            const aiAnalysis = await analyzeWithAI(text, `Analyse sémantique de type ${type} - fournissez des insights linguistiques approfondis`);
+            
+            if (aiAnalysis) {
+                html += `<div style="margin-top:25px; padding:20px; background:var(--bg-primary); border-left:4px solid var(--neon-purple); border-radius:12px;">
+                    <h3><i class="fas fa-brain"></i> Analyse Approfondie</h3>
+                    <p style="line-height:1.8; color:var(--text-primary);">${aiAnalysis.replace(/\n/g, '<br>')}</p>
+                </div>`;
+                document.getElementById('semantic-results').innerHTML = html;
+            }
+        } catch (aiError) {
+            console.log('AI unavailable:', aiError);
         }
         
-        document.getElementById('semantic-results').innerHTML = html;
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur lors de l\'analyse');
+    } finally {
         showLoading(false);
-    }, 500);
+    }
 }
 
 function performSemanticAnalysis(text, type) {
@@ -308,7 +328,6 @@ function displaySemanticResults(analysis, type) {
     }
     return html;
 }
-
 // ========== Concordancier KWIC ==========
 function generateConcordance() {
     const text = document.getElementById('conc-input').value.trim();
@@ -365,7 +384,7 @@ function displayConcordances(concordances, keyword) {
     document.getElementById('conc-results').innerHTML = html;
 }
 
-// ========== Comparaison ==========
+// ========== Comparaison (مُصلح) ==========
 async function compareTexts() {
     const text1 = document.getElementById('compare-text1').value.trim();
     const text2 = document.getElementById('compare-text2').value.trim();
@@ -376,29 +395,37 @@ async function compareTexts() {
     }
     
     showLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 100));
     
-    setTimeout(async () => {
+    try {
         const comparison = performTextComparison(text1, text2);
         displayComparisonResults(comparison);
         createComparisonCharts(comparison);
         
-        // Comparaison intelligente via API
-        const aiComp = await analyzeWithAI(
-            `Texte 1: ${text1.substring(0, 300)}\n\nTexte 2: ${text2.substring(0, 300)}`,
-            'Comparez ces textes stylistiquement et lexicalement'
-        );
-        
-        if (aiComp) {
-            const current = document.getElementById('comparison-results').innerHTML;
-            document.getElementById('comparison-results').innerHTML = current + 
-                `<div style="margin-top:25px;padding:20px;background:var(--bg-primary);border-left:4px solid var(--neon-purple);border-radius:12px;">
-                    <h3><i class="fas fa-microscope"></i> Analyse Comparative</h3>
-                    <p style="line-height:1.8;color:var(--text-primary);">${aiComp.replace(/\n/g, '<br>')}</p>
-                </div>`;
+        try {
+            const aiComp = await analyzeWithAI(
+                `Texte 1: ${text1.substring(0, 300)}\n\nTexte 2: ${text2.substring(0, 300)}`,
+                'Comparez ces textes stylistiquement et lexicalement'
+            );
+            
+            if (aiComp) {
+                const current = document.getElementById('comparison-results').innerHTML;
+                document.getElementById('comparison-results').innerHTML = current + 
+                    `<div style="margin-top:25px;padding:20px;background:var(--bg-primary);border-left:4px solid var(--neon-purple);border-radius:12px;">
+                        <h3><i class="fas fa-microscope"></i> Analyse Comparative</h3>
+                        <p style="line-height:1.8;color:var(--text-primary);">${aiComp.replace(/\n/g, '<br>')}</p>
+                    </div>`;
+            }
+        } catch (aiError) {
+            console.log('AI unavailable:', aiError);
         }
         
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Erreur lors de la comparaison');
+    } finally {
         showLoading(false);
-    }, 800);
+    }
 }
 
 function performTextComparison(text1, text2) {
@@ -639,7 +666,6 @@ function createLexicalDiversityChart(text) {
         });
     }
 }
-
 // ========== Export PDF ==========
 async function exportToPDF(toolType) {
     if(typeof jspdf==='undefined') { alert('PDF non chargé'); return; }
