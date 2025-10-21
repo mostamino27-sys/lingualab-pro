@@ -7,15 +7,12 @@
     <meta name="author" content="Bettahar Abdelkrim">
     <title>LinguaLab Pro - Laboratoire de Recherche Linguistique</title>
     
-    <!-- Font Awesome - مُصلح -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.2/css/all.min.css">
+    <!-- Font Awesome من مصادر متعددة -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="styles.css">
     
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    
-    <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
@@ -317,24 +314,5 @@
     </footer>
 
     <script src="script.js"></script>
-    
-    <!-- تحقق من تحميل Font Awesome -->
-    <script>
-    window.addEventListener('load', function() {
-        setTimeout(function() {
-            const testIcon = document.querySelector('.fas');
-            if (testIcon) {
-                const styles = window.getComputedStyle(testIcon, ':before');
-                if (!styles.content || styles.content === 'none') {
-                    console.warn('Font Awesome: تحميل احتياطي');
-                    const link = document.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = 'https://use.fontawesome.com/releases/v6.4.2/css/all.css';
-                    document.head.appendChild(link);
-                }
-            }
-        }, 500);
-    });
-    </script>
 </body>
 </html>
