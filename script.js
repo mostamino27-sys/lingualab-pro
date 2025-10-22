@@ -701,58 +701,142 @@ function displayVisualization(data, type) {
     }
     return html;
 }
-// ========== Export PDF ==========
 function exportToPDF(toolType) {
     if (typeof jspdf === 'undefined') {
         showToast('Bibliothèque PDF non chargée', 'error');
         return;
     }
     const contentDiv = document.getElementById(toolType + '-results');
-    if (!contentDiv || !contentDiv.innerHTML || contentDiv.innerHTML.trim() === '') {
+    if (!contentDiv || !contentDiv.innerHTML.trim() === '') {
         showToast('Effectuez d\'abord une analyse!', 'warning');
         return;
     }
     showLoading(true);
+    
     try {
         const { jsPDF } = jspdf;
         const doc = new jsPDF();
-        doc.setFontSize(18);
-        doc.setTextColor(59, 130, 246);
-        doc.text('LinguaLab Pro - Rapport', 15, 20);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text('Date: ' + new Date().toLocaleDateString('fr-FR'), 15, 30);
-        doc.text('Outil: ' + toolType, 15, 36);
-        doc.text('Par: Bettahar Abdelkrim - Universite de Mostaganem', 15, 42);
-        const text = contentDiv.innerText || contentDiv.textContent;
-        const lines = doc.splitTextToSize(text, 180);
-        doc.setFontSize(10);
-        doc.setTextColor(0);
-        let yPosition = 55;
+        const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
+        let yPos = 20;
+        
+        // ========== HEADER ==========
+        // Logo box
+        doc.setFillColor(59, 130, 246);
+        doc.rect(0, 0, pageWidth, 35, 'F');
+        
+        // Title
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(24);
+        doc.setFont(undefined, 'bold');
+        doc.text('🔬 LinguaLab Pro', pageWidth / 2, 15, { align: 'center' });
+        
+        // Subtitle
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'normal');
+        doc.text('Rapport d\'Analyse Linguistique', pageWidth / 2, 25, { align: 'center' });
+        
+        yPos = 45;
+        
+        // ========== INFO BOX ==========
+        doc.setFillColor(248, 249, 250);
+        doc.rect(15, yPos, pageWidth - 30, 25, 'F');
+        doc.setDrawColor(59, 130, 246);
+        doc.setLineWidth(0.5);
+        doc.rect(15, yPos, pageWidth - 30, 25);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        yPos += 8;
+        doc.text('📅 Date: ' + new Date().toLocaleDateString('fr-FR', { 
+            year: 'numeric', month: 'long', day: 'numeric' 
+        }), 20, yPos);
+        yPos += 6;
+        doc.text('🛠️ Outil: ' + toolType.charAt(0).toUpperCase() + toolType.slice(1), 20, yPos);
+        yPos += 6;
+        doc.text('👨‍🎓 Par: Bettahar Abdelkrim - Université de Mostaganem', 20, yPos);
+        
+        yPos += 15;
+        
+        // ========== CONTENT ==========
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        
+        // Extract text and clean it
+        const text = contentDiv.innerText || contentDiv.textContent;
+        const lines = text.split('\n').filter(line => line.trim() !== '');
+        
         lines.forEach(function(line) {
-            if (yPosition > pageHeight - 20) {
+            // Check if new page needed
+            if (yPos > pageHeight - 30) {
                 doc.addPage();
-                yPosition = 20;
+                yPos = 20;
             }
-            doc.text(line, 15, yPosition);
-            yPosition += 7;
+            
+            // Headers (lines with emoji or short uppercase)
+            if (line.match(/^[📊🧠🔍⚖️📈]/)) {
+                yPos += 5;
+                doc.setFontSize(14);
+                doc.setTextColor(59, 130, 246);
+                doc.setFont(undefined, 'bold');
+                const wrappedTitle = doc.splitTextToSize(line, pageWidth - 40);
+                doc.text(wrappedTitle, 20, yPos);
+                yPos += wrappedTitle.length * 7;
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont(undefined, 'normal');
+                yPos += 3;
+            }
+            // Numbers/Stats (contains digits and :)
+            else if (line.match(/\d+/) && line.includes(':')) {
+                const parts = line.split(':');
+                if (parts.length === 2) {
+                    doc.setFont(undefined, 'normal');
+                    doc.text('  • ' + parts[0].trim() + ':', 20, yPos);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(59, 130, 246);
+                    doc.text(parts[1].trim(), 80, yPos);
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont(undefined, 'normal');
+                    yPos += 6;
+                }
+            }
+            // Regular text
+            else {
+                const wrapped = doc.splitTextToSize(line, pageWidth - 40);
+                doc.text(wrapped, 20, yPos);
+                yPos += wrapped.length * 5;
+            }
         });
-        const pageCount = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
+        
+        // ========== FOOTER (all pages) ==========
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
             doc.setPage(i);
+            
+            // Footer line
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
+            
+            // Footer text
             doc.setFontSize(8);
-            doc.setTextColor(150);
-            doc.text('Page ' + i + ' / ' + pageCount, 105, pageHeight - 10, { align: 'center' });
-            doc.text('LinguaLab Pro', 105, pageHeight - 5, { align: 'center' });
+            doc.setTextColor(150, 150, 150);
+            doc.text('Page ' + i + ' sur ' + totalPages, pageWidth / 2, pageHeight - 12, { align: 'center' });
+            doc.text('🔒 Traitement 100% local - LinguaLab Pro v2.0', pageWidth / 2, pageHeight - 8, { align: 'center' });
+            doc.text('© 2025 Bettahar Abdelkrim', pageWidth / 2, pageHeight - 4, { align: 'center' });
         }
-        const filename = 'LinguaLab_' + toolType + '_' + Date.now() + '.pdf';
+        
+        // ========== SAVE ==========
+        const filename = 'LinguaLab_' + toolType + '_' + new Date().toISOString().slice(0,10) + '.pdf';
         doc.save(filename);
+        
         showLoading(false);
-        showToast('PDF exporté: ' + filename, 'success');
+        showToast('✅ PDF exporté: ' + filename, 'success');
+        
     } catch (error) {
         console.error('Error:', error);
-        showToast('Erreur PDF', 'error');
+        showToast('❌ Erreur PDF: ' + error.message, 'error');
         showLoading(false);
     }
 }
