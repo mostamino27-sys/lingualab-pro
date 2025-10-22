@@ -91,6 +91,9 @@
                     <div class="form-group">
                         <label><span style="font-size:18px;margin-right:8px;">📝</span> Texte à analyser</label>
                         <textarea id="corpus-input" placeholder="Collez votre texte ici pour une analyse statistique complète..."></textarea>
+                        <button onclick="loadSampleText('corpus')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.3s;">
+                            📝 Charger un exemple
+                        </button>
                     </div>
 
                     <div class="form-group">
@@ -131,6 +134,9 @@
                     <div class="form-group">
                         <label><span style="font-size:18px;margin-right:8px;">📝</span> Texte à analyser</label>
                         <textarea id="semantic-input" placeholder="Entrez le texte pour une analyse sémantique approfondie..."></textarea>
+                        <button onclick="loadSampleText('semantic')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;">
+                            📝 Charger un exemple
+                        </button>
                     </div>
 
                     <div class="form-group">
@@ -170,6 +176,9 @@
                     <div class="form-group">
                         <label><span style="font-size:18px;margin-right:8px;">📝</span> Corpus textuel</label>
                         <textarea id="conc-input" placeholder="Entrez votre corpus pour générer des concordances..."></textarea>
+                        <button onclick="loadSampleText('concordance')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;">
+                            📝 Charger un exemple
+                        </button>
                     </div>
 
                     <div class="form-group">
@@ -182,7 +191,7 @@
 
                     <div class="form-group">
                         <label><span style="font-size:18px;margin-right:8px;">🔑</span> Mot-clé à rechercher</label>
-                        <input type="text" id="conc-keyword" placeholder="Entrez le mot-clé...">
+                        <input type="text" id="conc-keyword" placeholder="Entrez le mot-clé (ex: langue)...">
                     </div>
 
                     <div class="form-group">
@@ -210,6 +219,9 @@
                             <div class="form-group">
                                 <label><span style="font-size:18px;margin-right:8px;">📝</span> Texte 1</label>
                                 <textarea id="compare-text1" placeholder="Entrez le premier texte..." style="min-height:200px;"></textarea>
+                                <button onclick="loadSampleText('compare1')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;">
+                                    📝 Charger un exemple
+                                </button>
                             </div>
                             <div class="form-group">
                                 <label><span style="font-size:18px;margin-right:8px;">📁</span> Importer Texte 1</label>
@@ -220,6 +232,9 @@
                             <div class="form-group">
                                 <label><span style="font-size:18px;margin-right:8px;">📝</span> Texte 2</label>
                                 <textarea id="compare-text2" placeholder="Entrez le second texte..." style="min-height:200px;"></textarea>
+                                <button onclick="loadSampleText('compare2')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;">
+                                    📝 Charger un exemple
+                                </button>
                             </div>
                             <div class="form-group">
                                 <label><span style="font-size:18px;margin-right:8px;">📁</span> Importer Texte 2</label>
@@ -247,6 +262,9 @@
                     <div class="form-group">
                         <label><span style="font-size:18px;margin-right:8px;">📝</span> Texte à visualiser</label>
                         <textarea id="viz-input" placeholder="Entrez le texte pour générer des visualisations..."></textarea>
+                        <button onclick="loadSampleText('visualization')" style="margin-top:10px;padding:8px 15px;background:rgba(59,130,246,0.1);border:2px solid #3b82f6;border-radius:8px;color:#3b82f6;cursor:pointer;font-size:14px;font-weight:600;">
+                            📝 Charger un exemple
+                        </button>
                     </div>
 
                     <div class="form-group">
@@ -325,14 +343,88 @@
                             </div>
                         </div>
 
+                        <!-- Guide d'Utilisation -->
+                        <div style="margin:30px 0;padding:25px;background:var(--bg-primary);border-radius:15px;border:2px solid var(--border-color);">
+                            <h3 style="color:#3b82f6;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+                                <span style="font-size:24px;">❓</span> Guide d'Utilisation Rapide
+                            </h3>
+                            
+                            <div style="margin:20px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:10px;">📊 Analyse de Corpus</h4>
+                                <ol style="margin-left:20px;line-height:2;color:var(--text-primary);">
+                                    <li>Collez votre texte ou cliquez sur "Charger un exemple"</li>
+                                    <li>Ou importez un fichier .txt/.pdf</li>
+                                    <li>Sélectionnez la langue du texte</li>
+                                    <li>Cliquez sur "Analyser le Corpus"</li>
+                                    <li>Consultez les statistiques et exportez en PDF si nécessaire</li>
+                                </ol>
+                            </div>
+                            
+                            <div style="margin:20px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:10px;">🔍 Concordancier KWIC</h4>
+                                <ol style="margin-left:20px;line-height:2;color:var(--text-primary);">
+                                    <li>Entrez votre corpus textuel</li>
+                                    <li>Tapez le mot-clé à rechercher</li>
+                                    <li>Ajustez la taille du contexte (nombre de mots)</li>
+                                    <li>Cliquez sur "Générer Concordances"</li>
+                                </ol>
+                            </div>
+                            
+                            <p style="margin-top:20px;padding:15px;background:rgba(59,130,246,0.1);border-radius:10px;font-size:14px;color:var(--text-primary);">
+                                💡 <strong>Astuce:</strong> Tous les fichiers sont traités localement dans votre navigateur pour garantir votre confidentialité. Aucune donnée n'est envoyée à un serveur externe.
+                            </p>
+                        </div>
+
+                        <!-- FAQ -->
+                        <div style="margin:30px 0;padding:25px;background:var(--bg-primary);border-radius:15px;border:2px solid var(--border-color);">
+                            <h3 style="color:#3b82f6;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
+                                <span style="font-size:24px;">❔</span> Questions Fréquentes (FAQ)
+                            </h3>
+                            
+                            <div style="margin:15px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:8px;font-size:16px;">Q: Mes fichiers sont-ils en sécurité?</h4>
+                                <p style="margin-left:15px;color:var(--text-secondary);line-height:1.8;">
+                                    R: Oui, 100%! Tous les fichiers sont traités localement dans votre navigateur. Rien n'est envoyé à un serveur externe. Même le développeur ne peut pas accéder à vos données.
+                                </p>
+                            </div>
+                            
+                            <div style="margin:15px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:8px;font-size:16px;">Q: Quels formats de fichiers sont acceptés?</h4>
+                                <p style="margin-left:15px;color:var(--text-secondary);line-height:1.8;">
+                                    R: .txt et .pdf (jusqu'à 10MB). Les fichiers PDF doivent contenir du texte (pas des images scannées).
+                                </p>
+                            </div>
+                            
+                            <div style="margin:15px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:8px;font-size:16px;">Q: L'application fonctionne-t-elle hors ligne?</h4>
+                                <p style="margin-left:15px;color:var(--text-secondary);line-height:1.8;">
+                                    R: Oui, après le premier chargement, vous pouvez l'utiliser sans connexion internet.
+                                </p>
+                            </div>
+                            
+                            <div style="margin:15px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:8px;font-size:16px;">Q: Puis-je utiliser LinguaLab Pro pour ma thèse ou mon mémoire?</h4>
+                                <p style="margin-left:15px;color:var(--text-secondary);line-height:1.8;">
+                                    R: Absolument! C'est précisément conçu pour les chercheurs et étudiants en linguistique. Les résultats sont académiques et exportables en PDF.
+                                </p>
+                            </div>
+                            
+                            <div style="margin:15px 0;">
+                                <h4 style="color:#3b82f6;margin-bottom:8px;font-size:16px;">Q: L'application est-elle vraiment gratuite?</h4>
+                                <p style="margin-left:15px;color:var(--text-secondary);line-height:1.8;">
+                                    R: Oui, totalement gratuite et sans publicité. C'est un projet académique open source développé pour la communauté linguistique.
+                                </p>
+                            </div>
+                        </div>
+                        <!-- Privacy Notice -->
                         <div style="margin:30px 0;padding:25px;background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(255,255,255,0.95));border-left:4px solid #10b981;border-radius:15px;">
                             <h3 style="color:#10b981;margin-bottom:15px;display:flex;align-items:center;gap:10px;">
                                 <span style="font-size:24px;">🔒</span> Confidentialité et Sécurité
                             </h3>
-                            <p style="line-height:1.8;margin-bottom:10px;">
+                            <p style="line-height:1.8;margin-bottom:10px;color:var(--text-primary);">
                                 <strong>🔒 Vos fichiers restent 100% privés:</strong>
                             </p>
-                            <ul style="margin-left:20px;line-height:2;">
+                            <ul style="margin-left:20px;line-height:2;color:var(--text-primary);">
                                 <li>✅ Tous les fichiers (TXT, PDF) sont traités localement dans votre navigateur</li>
                                 <li>✅ Aucun fichier n'est envoyé à un serveur externe</li>
                                 <li>✅ Aucune donnée n'est stockée ou enregistrée</li>
@@ -340,13 +432,14 @@
                                 <li>✅ L'application fonctionne même hors ligne après le premier chargement</li>
                                 <li>✅ Aucun tracking, cookie ou analytics</li>
                             </ul>
-                            <p style="margin-top:15px;padding:15px;background:rgba(59,130,246,0.08);border-radius:10px;font-size:14px;color:var(--text-secondary);">
+                            <p style="margin-top:15px;padding:15px;background:rgba(59,130,246,0.08);border-radius:10px;font-size:14px;color:var(--text-primary);">
                                 💡 <strong>Traitement 100% client-side:</strong> 
                                 Tout le code JavaScript s'exécute dans votre navigateur. 
                                 Même le développeur ne peut pas accéder à vos fichiers.
                             </p>
                         </div>
 
+                        <!-- Academic Applications -->
                         <div class="academic-applications" style="margin:30px 0;padding:25px;background:var(--bg-primary);border-radius:15px;border:2px solid var(--border-color);">
                             <h3 style="color:#3b82f6;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
                                 <span style="font-size:24px;">🎓</span> Applications Académiques
@@ -375,6 +468,7 @@
                             </ul>
                         </div>
 
+                        <!-- Tech Stack -->
                         <div class="tech-stack" style="margin:30px 0;padding:25px;background:var(--bg-primary);border-radius:15px;border:2px solid var(--border-color);">
                             <h3 style="color:#3b82f6;margin-bottom:20px;display:flex;align-items:center;gap:12px;">
                                 <span style="font-size:24px;">💻</span> Technologies Utilisées
@@ -388,6 +482,8 @@
                                 <span class="badge" style="padding:8px 18px;background:linear-gradient(135deg,rgba(59,130,246,0.2),rgba(96,165,250,0.15));border:2px solid #3b82f6;border-radius:20px;font-weight:600;font-size:14px;">PDF.js</span>
                             </div>
                         </div>
+
+                        <!-- Developer Info -->
                         <div class="developer-info" style="margin:40px 0;padding:30px;background:linear-gradient(135deg,rgba(59,130,246,0.05),rgba(96,165,250,0.03));border-radius:15px;border:2px solid var(--border-color);">
                             <h3 style="color:#3b82f6;margin-bottom:20px;display:flex;align-items:center;gap:12px;font-size:22px;">
                                 <span style="font-size:24px;">👨‍🎓</span> Développeur
@@ -421,7 +517,7 @@
                                 Développé avec passion pour la communauté linguistique académique
                             </p>
                             <p style="color:var(--text-secondary);font-size:13px;margin-top:10px;">
-                                Version 2.0 - Octobre 2025
+                                Version 2.0 - 2025
                             </p>
                         </div>
                     </div>
@@ -444,6 +540,9 @@
         <div class="loading-spinner"></div>
         <p>Analyse en cours...</p>
     </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" style="position:fixed;top:80px;right:20px;z-index:3001;"></div>
 
     <!-- Scripts -->
     <script src="script.js"></script>
