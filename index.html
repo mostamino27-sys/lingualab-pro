@@ -280,11 +280,21 @@
         <p>Développé par <strong>Bettahar Abdelkrim</strong> | Université de Mostaganem</p>
         <p style="font-size:12px;margin-top:10px;color:var(--text-secondary);">🔒 Traitement 100% local - Aucune donnée n'est envoyée à des serveurs externes</p>
     </footer>
-    <div id="loading-overlay" class="loading-overlay">
-        <div class="loading-spinner"></div>
-        <p>Analyse en cours...</p>
-    </div>
-    <div id="toast-container" style="position:fixed;top:80px;right:20px;z-index:3001;"></div>
-    <script src="script.js"></script>
-</body>
+    // في script.js، استبدل showLoading:
+function showLoading(show, progress) {
+    const overlay = document.getElementById('loading-overlay');
+    if (!overlay) return;
+    
+    if (show) {
+        overlay.classList.add('active');
+        if (progress !== undefined) {
+            // Update progress bar if exists
+            const bar = overlay.querySelector('.progress-bar-fill');
+            if (bar) bar.style.width = progress + '%';
+        }
+    } else {
+        overlay.classList.remove('active');
+    }
+}
+
 </html>
