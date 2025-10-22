@@ -1179,3 +1179,56 @@ body.light-mode select:focus-visible {
 }
 
 /* ========== END OF STYLES ========== */
+/* ========== RTL Support for Arabic ========== */
+[dir="rtl"] {
+    text-align: right;
+}
+
+[dir="rtl"] .sidebar {
+    text-align: right;
+}
+
+[dir="rtl"] .nav-item {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .logo {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .tool-card h2 {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .button-group {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .form-group label {
+    flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav-item:hover {
+    transform: translateX(-5px);
+}
+
+[dir="rtl"] .controls {
+    flex-direction: row-reverse !important;
+}
+
+[dir="rtl"] .stats-grid,
+[dir="rtl"] .features-grid {
+    direction: rtl;
+}
+
+[dir="rtl"] body {
+    font-family: 'Segoe UI', 'Tahoma', 'Arial', sans-serif;
+}
+
+[dir="rtl"] .word-cloud {
+    direction: rtl;
+}
+
+[dir="rtl"] .comparison-grid {
+    direction: rtl;
+}
