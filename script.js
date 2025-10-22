@@ -1,4 +1,4 @@
-// ========== Configuration ==========
+// ========== LinguaLab Pro v2.0 - Configuration ==========
 let currentTool = 'corpus';
 let darkMode = true;
 
@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initParticles();
     initTheme();
     console.log('✅ LinguaLab Pro v2.0 loaded successfully!');
+    console.log('🔒 All processing is done locally in your browser');
 });
 
 // ========== Thème ==========
@@ -86,6 +87,59 @@ function showLoading(show) {
     }
 }
 
+// ========== Toast Notifications ==========
+function showToast(message, type) {
+    type = type || 'info';
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.style.cssText = 'padding:15px 25px;margin-bottom:10px;background:var(--bg-secondary);color:var(--text-primary);border-radius:12px;border-left:4px solid #3b82f6;box-shadow:0 5px 20px var(--shadow-color);animation:slideIn 0.3s ease;max-width:350px;';
+    
+    if (type === 'success') toast.style.borderLeftColor = '#10b981';
+    else if (type === 'error') toast.style.borderLeftColor = '#ef4444';
+    else if (type === 'warning') toast.style.borderLeftColor = '#f59e0b';
+    
+    const emoji = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+    toast.innerHTML = '<div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">' + emoji + '</span><span>' + message + '</span></div>';
+    
+    container.appendChild(toast);
+    
+    setTimeout(function() {
+        toast.style.animation = 'slideIn 0.3s ease reverse';
+        setTimeout(function() { toast.remove(); }, 300);
+    }, 3000);
+}
+
+// ========== Sample Text Loader ==========
+function loadSampleText(tool) {
+    const samples = {
+        corpus: "La linguistique est une science qui étudie le langage humain sous toutes ses formes. Elle analyse la structure des langues, leur évolution historique et leur usage dans différents contextes sociaux et culturels. La linguistique moderne utilise des méthodes scientifiques rigoureuses pour comprendre les mécanismes du langage. Les chercheurs en linguistique examinent la phonétique, la morphologie, la syntaxe, la sémantique et la pragmatique. Cette discipline contribue à notre compréhension de la cognition humaine et de la communication.",
+        semantic: "C'est un film absolument excellent! J'ai vraiment adoré les acteurs et le scénario était magnifique. Une expérience formidable au cinéma. La réalisation est parfaite et l'histoire est captivante. Je recommande vivement ce chef-d'œuvre à tous les amateurs de bon cinéma.",
+        concordance: "La langue française est belle et riche. La langue de Molière offre de nombreuses possibilités expressives. La langue littéraire permet une grande précision dans l'expression des idées. La langue parlée évolue constamment avec la société.",
+        compare1: "Le français est une langue romane parlée en France et dans plusieurs pays francophones à travers le monde. Elle est reconnue comme langue officielle dans de nombreuses organisations internationales.",
+        compare2: "L'espagnol est également une langue romane, parlée en Espagne et dans la majorité des pays d'Amérique latine. C'est l'une des langues les plus parlées au monde.",
+        visualization: "linguistique corpus texte analyse données recherche université étudiant mémoire thèse français langue littérature phonétique morphologie syntaxe sémantique pragmatique communication cognition expression parole écriture"
+    };
+    
+    const inputId = tool === 'compare1' ? 'compare-text1' : 
+                    tool === 'compare2' ? 'compare-text2' : 
+                    tool + '-input';
+    
+    const inputEl = document.getElementById(inputId);
+    if (inputEl) {
+        inputEl.value = samples[tool] || samples.corpus;
+        inputEl.style.borderColor = '#10b981';
+        inputEl.style.boxShadow = '0 0 20px rgba(16, 185, 129, 0.4)';
+        setTimeout(function() {
+            inputEl.style.borderColor = '';
+            inputEl.style.boxShadow = '';
+        }, 1500);
+        showToast('Exemple de texte chargé avec succès!', 'success');
+    }
+}
+
 // ========== PDF Support ==========
 async function extractTextFromPDF(file) {
     return new Promise(function(resolve, reject) {
@@ -133,7 +187,7 @@ async function loadFileGeneric(file, targetInputId) {
     if (!file) return;
     
     if (file.size > 10 * 1024 * 1024) {
-        alert('Fichier trop grand. Max 10MB');
+        showToast('Fichier trop grand. Maximum 10MB', 'error');
         return;
     }
     
@@ -153,7 +207,7 @@ async function loadFileGeneric(file, targetInputId) {
         } else if (fileName.endsWith('.pdf')) {
             text = await extractTextFromPDF(file);
         } else {
-            alert('Format non supporté. Utilisez .txt ou .pdf');
+            showToast('Format non supporté. Utilisez .txt ou .pdf', 'error');
             showLoading(false);
             return;
         }
@@ -169,10 +223,11 @@ async function loadFileGeneric(file, targetInputId) {
         }, 1500);
         
         showLoading(false);
+        showToast('Fichier chargé avec succès!', 'success');
         
     } catch (error) {
         console.error('Erreur:', error);
-        alert('Erreur lors du chargement: ' + error);
+        showToast('Erreur lors du chargement: ' + error, 'error');
         showLoading(false);
     }
 }
@@ -209,7 +264,7 @@ function analyzeCorpus() {
     const resultsDiv = document.getElementById('corpus-results');
     
     if (!input || !resultsDiv) {
-        alert('Erreur: Éléments introuvables');
+        showToast('Erreur: Éléments introuvables', 'error');
         return;
     }
     
@@ -217,17 +272,25 @@ function analyzeCorpus() {
     const lang = document.getElementById('corpus-lang').value;
     
     if (!text || text.split(/\s+/).length < 10) {
-        alert('Veuillez entrer un texte d\'au moins 10 mots.');
+        showToast('Veuillez entrer un texte d\'au moins 10 mots', 'warning');
         return;
     }
     
     showLoading(true);
     
     setTimeout(function() {
-        const analysis = performCorpusAnalysis(text, lang);
-        const html = generateCorpusHTML(analysis);
-        resultsDiv.innerHTML = html;
-        showLoading(false);
+        try {
+            const analysis = performCorpusAnalysis(text, lang);
+            const html = generateCorpusHTML(analysis);
+            resultsDiv.innerHTML = html;
+            showToast('Analyse terminée avec succès!', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            resultsDiv.innerHTML = '<p style="color:red;">❌ Erreur lors de l\'analyse</p>';
+            showToast('Erreur lors de l\'analyse', 'error');
+        } finally {
+            showLoading(false);
+        }
     }, 500);
 }
 
@@ -282,7 +345,6 @@ function generateCorpusHTML(analysis) {
     
     return html;
 }
-
 // ========== Concordancier KWIC ==========
 function generateConcordance() {
     const text = document.getElementById('conc-input').value.trim();
@@ -291,12 +353,12 @@ function generateConcordance() {
     const resultsDiv = document.getElementById('conc-results');
     
     if (!text || !keyword) {
-        alert('⚠️ Veuillez remplir tous les champs:\n\n1. Entrez un corpus textuel\n2. Entrez un mot-clé à rechercher');
+        showToast('Veuillez remplir tous les champs (corpus + mot-clé)', 'warning');
         return;
     }
     
     if (text.split(/\s+/).length < 10) {
-        alert('⚠️ Le corpus doit contenir au moins 10 mots.');
+        showToast('Le corpus doit contenir au moins 10 mots', 'warning');
         return;
     }
     
@@ -306,9 +368,11 @@ function generateConcordance() {
         try {
             const concordances = extractConcordances(text, keyword, contextSize);
             displayConcordances(concordances, keyword, resultsDiv);
+            showToast(concordances.length + ' occurrence(s) trouvée(s)', 'success');
         } catch (error) {
             console.error('Error:', error);
             resultsDiv.innerHTML = '<p style="color:red;">❌ Erreur lors de la génération</p>';
+            showToast('Erreur lors de la génération', 'error');
         } finally {
             showLoading(false);
         }
@@ -345,6 +409,7 @@ function displayConcordances(concordances, keyword, resultsDiv) {
         html += '<div style="text-align:center;padding:60px 20px;background:var(--bg-primary);border-radius:15px;">';
         html += '<p style="font-size:48px;margin-bottom:15px;">🔎</p>';
         html += '<p style="font-size:18px;color:var(--text-secondary);">Aucune occurrence trouvée pour "' + keyword + '"</p>';
+        html += '<p style="font-size:14px;color:var(--text-secondary);margin-top:10px;">Essayez avec un autre mot-clé ou vérifiez l\'orthographe.</p>';
         html += '</div>';
     } else {
         html += '<div class="concordance-list" style="max-height:600px;overflow-y:auto;">';
@@ -363,6 +428,7 @@ function displayConcordances(concordances, keyword, resultsDiv) {
     
     resultsDiv.innerHTML = html;
 }
+
 // ========== Analyse Sémantique ==========
 function analyzeSemantic() {
     const text = document.getElementById('semantic-input').value.trim();
@@ -370,12 +436,12 @@ function analyzeSemantic() {
     const resultsDiv = document.getElementById('semantic-results');
     
     if (!text) {
-        alert('⚠️ Veuillez entrer un texte à analyser.');
+        showToast('Veuillez entrer un texte à analyser', 'warning');
         return;
     }
     
     if (text.split(/\s+/).length < 5) {
-        alert('⚠️ Le texte doit contenir au moins 5 mots.');
+        showToast('Le texte doit contenir au moins 5 mots', 'warning');
         return;
     }
     
@@ -386,9 +452,11 @@ function analyzeSemantic() {
             const analysis = performSemanticAnalysis(text, type);
             const html = displaySemanticResults(analysis, type);
             resultsDiv.innerHTML = html;
+            showToast('Analyse sémantique terminée!', 'success');
         } catch (error) {
             console.error('Error:', error);
             resultsDiv.innerHTML = '<p style="color:red;">❌ Erreur lors de l\'analyse</p>';
+            showToast('Erreur lors de l\'analyse', 'error');
         } finally {
             showLoading(false);
         }
@@ -405,8 +473,8 @@ function performSemanticAnalysis(text, type) {
 }
 
 function analyzeSentiment(text, words) {
-    const positiveWords = ['bon','bien','excellent','magnifique','merveilleux','parfait','génial','formidable','agréable','superbe','remarquable','extraordinaire','fantastique','splendide','beau','belle','joli','jolie','heureux','heureuse','joie','amour','bonheur','succès','réussite','intéressant','formidable','incroyable'];
-    const negativeWords = ['mauvais','mal','horrible','terrible','nul','nulle','pire','médiocre','désagréable','catastrophique','affreux','détestable','lamentable','triste','tristesse','malheur','échec','problème','difficulté','erreur','ennuyeux','décevant','faible'];
+    const positiveWords = ['bon','bien','excellent','magnifique','merveilleux','parfait','génial','formidable','agréable','superbe','remarquable','extraordinaire','fantastique','splendide','beau','belle','joli','jolie','heureux','heureuse','joie','amour','bonheur','succès','réussite','intéressant','incroyable','admirable','exceptionnel','brillant'];
+    const negativeWords = ['mauvais','mal','horrible','terrible','nul','nulle','pire','médiocre','désagréable','catastrophique','affreux','détestable','lamentable','triste','tristesse','malheur','échec','problème','difficulté','erreur','ennuyeux','décevant','faible','pauvre','laid','moche'];
     
     const posCount = words.filter(w => positiveWords.includes(w)).length;
     const negCount = words.filter(w => negativeWords.includes(w)).length;
@@ -482,6 +550,20 @@ function displaySemanticResults(analysis, type) {
         html += '<div class="stat-card"><div class="stat-value" style="color:#ef4444;">' + analysis.negative + '</div><div class="stat-label">Mots Négatifs</div></div>';
         html += '<div class="stat-card"><div class="stat-value" style="color:#6c757d;">' + analysis.neutral + '</div><div class="stat-label">Mots Neutres</div></div>';
         html += '</div>';
+        
+        if (analysis.posWords.length > 0) {
+            html += '<h3 style="margin-top:30px;color:#10b981;"><span style="font-size:20px;margin-right:8px;">😊</span> Mots Positifs Détectés</h3>';
+            html += '<div class="word-cloud">';
+            analysis.posWords.slice(0, 20).forEach(w => html += '<div class="word-item" style="border-color:#10b981;color:#10b981;">' + w + '</div>');
+            html += '</div>';
+        }
+        
+        if (analysis.negWords.length > 0) {
+            html += '<h3 style="margin-top:30px;color:#ef4444;"><span style="font-size:20px;margin-right:8px;">😔</span> Mots Négatifs Détectés</h3>';
+            html += '<div class="word-cloud">';
+            analysis.negWords.slice(0, 20).forEach(w => html += '<div class="word-item" style="border-color:#ef4444;color:#ef4444;">' + w + '</div>');
+            html += '</div>';
+        }
     } else if (type === 'entities') {
         html += '<div style="margin:25px 0;padding:20px;background:rgba(59,130,246,0.1);border-left:4px solid #3b82f6;border-radius:10px;">';
         html += '<p style="margin:0;"><strong>✅ ' + analysis.total + ' entité(s) nommée(s) détectée(s)</strong></p></div>';
@@ -490,6 +572,8 @@ function displaySemanticResults(analysis, type) {
             html += '<div class="word-cloud">';
             analysis.all.forEach(e => html += '<div class="word-item">' + e + '</div>');
             html += '</div>';
+        } else {
+            html += '<p style="text-align:center;padding:40px;color:var(--text-secondary);">Aucune entité nommée détectée.</p>';
         }
     } else if (type === 'themes') {
         html += '<h3 style="margin-top:30px;"><span style="font-size:20px;margin-right:8px;">🎯</span> Thèmes Principaux</h3>';
@@ -514,11 +598,12 @@ function displaySemanticResults(analysis, type) {
                 html += '<div class="word-item">' + col + ' <span style="background:#3b82f6;color:#fff;padding:2px 6px;border-radius:10px;margin-left:5px;">' + freq + '</span></div>';
             });
             html += '</div>';
+        } else {
+            html += '<p style="text-align:center;padding:40px;color:var(--text-secondary);">Aucune collocation fréquente détectée.</p>';
         }
     }
     return html;
 }
-
 // ========== Comparaison de Textes ==========
 function compareTexts() {
     const text1 = document.getElementById('compare-text1').value.trim();
@@ -526,7 +611,7 @@ function compareTexts() {
     const resultsDiv = document.getElementById('comparison-results');
     
     if (!text1 || !text2) {
-        alert('⚠️ Veuillez remplir les deux textes à comparer.');
+        showToast('Veuillez remplir les deux textes à comparer', 'warning');
         return;
     }
     
@@ -537,9 +622,11 @@ function compareTexts() {
             const comparison = performComparison(text1, text2);
             const html = displayComparisonResults(comparison);
             resultsDiv.innerHTML = html;
+            showToast('Comparaison terminée! Similarité: ' + comparison.similarity + '%', 'success');
         } catch (error) {
             console.error('Error:', error);
             resultsDiv.innerHTML = '<p style="color:red;">❌ Erreur lors de la comparaison</p>';
+            showToast('Erreur lors de la comparaison', 'error');
         } finally {
             showLoading(false);
         }
@@ -602,7 +689,7 @@ function visualizeData() {
     const resultsDiv = document.getElementById('viz-results');
     
     if (!text) {
-        alert('⚠️ Veuillez entrer un texte à visualiser.');
+        showToast('Veuillez entrer un texte à visualiser', 'warning');
         return;
     }
     
@@ -613,9 +700,11 @@ function visualizeData() {
             const viz = performVisualization(text, type);
             const html = displayVisualization(viz, type);
             resultsDiv.innerHTML = html;
+            showToast('Visualisation générée avec succès!', 'success');
         } catch (error) {
             console.error('Error:', error);
             resultsDiv.innerHTML = '<p style="color:red;">❌ Erreur lors de la visualisation</p>';
+            showToast('Erreur lors de la visualisation', 'error');
         } finally {
             showLoading(false);
         }
@@ -675,73 +764,4 @@ function displayVisualization(data, type) {
         html += '</div>';
     } else if (type === 'ngrams') {
         html += '<div class="word-cloud" style="margin-top:20px;">';
-        data.forEach(([ngram, freq]) => html += '<div class="word-item">' + ngram + ' <span style="background:#3b82f6;color:#fff;padding:2px 6px;border-radius:10px;margin-left:5px;">' + freq + '</span></div>');
-        html += '</div>';
-    } else if (type === 'lexical') {
-        html += '<div class="stats-grid" style="margin-top:20px;">';
-        html += '<div class="stat-card"><div class="stat-value">' + data.total + '</div><div class="stat-label">Total Tokens</div></div>';
-        html += '<div class="stat-card"><div class="stat-value">' + data.unique + '</div><div class="stat-label">Types Uniques</div></div>';
-        html += '<div class="stat-card"><div class="stat-value">' + data.ttr + '%</div><div class="stat-label">TTR (Diversité)</div></div>';
-        html += '</div>';
-    }
-    
-    return html;
-}
-
-// ========== Export PDF ==========
-function exportToPDF(toolType) {
-    if (typeof jspdf === 'undefined') {
-        alert('⚠️ Erreur: Bibliothèque PDF non chargée.\n\nSolution: Rafraîchissez la page (F5)');
-        return;
-    }
-    
-    const contentDiv = document.getElementById(toolType + '-results');
-    if (!contentDiv || !contentDiv.innerHTML || contentDiv.innerHTML.trim() === '') {
-        alert('⚠️ Aucune analyse à exporter!\n\n📝 Marche à suivre:\n1️⃣ Entrez votre texte\n2️⃣ Cliquez sur "Analyser"\n3️⃣ Puis "Exporter en PDF"');
-        return;
-    }
-    
-    showLoading(true);
-    
-    try {
-        const { jsPDF } = jspdf;
-        const doc = new jsPDF();
-        const text = contentDiv.innerText || contentDiv.textContent;
-        const lines = doc.splitTextToSize(text, 180);
-        
-        doc.setFontSize(16);
-        doc.setTextColor(59, 130, 246);
-        doc.text('LinguaLab Pro - Rapport', 15, 20);
-        doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text('Date: ' + new Date().toLocaleDateString('fr-FR'), 15, 30);
-        doc.setFontSize(10);
-        doc.setTextColor(0);
-        doc.text(lines, 15, 45);
-        
-        const filename = 'LinguaLab_' + toolType + '_' + Date.now() + '.pdf';
-        doc.save(filename);
-        showLoading(false);
-        setTimeout(() => alert('✅ PDF exporté: ' + filename), 200);
-    } catch (error) {
-        console.error('Error:', error);
-        alert('❌ Erreur: ' + error.message);
-        showLoading(false);
-    }
-}
-
-// ========== Stop Words ==========
-function getStopWords(lang) {
-    const map = {
-        'fr': ['le','la','les','un','une','des','de','du','et','ou','mais','donc','car','à','dans','par','pour','en','avec','sans','sur','je','tu','il','elle','nous','vous','ils','elles','ce','mon','ma','mes','est','sont','être','avoir','ne','pas','plus','qui','que','où'],
-        'en': ['the','a','an','and','or','but','in','on','at','to','for','of','with','is','are','was','were','be','have','has','this','that','i','you','he','she','it','we','they'],
-        'ar': ['في','من','إلى','على','عن','هذا','أن','ما','لا'],
-        'es': ['el','la','los','las','un','de','y','en','que'],
-        'it': ['il','lo','la','i','le','un','di','e','che']
-    };
-    return new Set(map[lang] || map['fr']);
-}
-
-console.log('%c🔬 LinguaLab Pro v2.0 COMPLET', 'font-size:20px;color:#3b82f6;font-weight:bold');
-console.log('%c✅ 6/6 Outils Fonctionnels', 'color:#10b981;font-size:16px');
-console.log('%c📊 Corpus | 🧠 Sémantique | 🔍 KWIC | ⚖️ Comparaison | 📈 Visualisation | 📄 Export', 'color:#60a5fa');
+        data.forEach(([ngram, freq]) => html += '<div class="word-item">' + ngram + ' <span
